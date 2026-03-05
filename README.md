@@ -17,3 +17,4 @@ Before you follow this step, plase ensure you have git installed.
 Caution!
 
 We recommended to install this via wsl on any distro you have for windows for easy installation. Note that the distro should be integrated to your docker desktop.
+To change to any other ojs version, open .env file and change the ```PKP_VERSION``` to your liked version.
