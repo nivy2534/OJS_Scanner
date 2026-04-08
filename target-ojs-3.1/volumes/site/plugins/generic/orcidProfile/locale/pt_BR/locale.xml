@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
+<!--
+  * plugins/generic/orcidPlugin/locale/pt_BR/locale.xml
+  *
+  * Copyright (c) 2015-2019 University of Pittsburgh
+  * Copyright (c) 2014-2019 Simon Fraser University
+  * Copyright (c) 2003-2019 John Willinsky
+  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+  *
+  * ORCID Profile plugin localization strings
+  -->
+
+<locale name="pt_BR" full_name="Português (Brasil)">
+
+	<message key="plugins.generic.orcidProfile.displayName">Plugin de Perfil ORCID</message>
+	<message key="plugins.generic.orcidProfile.description">Permite a importação de informação do perfil do utilizador a partir do ORCID.</message>
+	<message key="plugins.generic.orcidProfile.instructions">Pode pré-preencher este formulário com informação sobre um perfil ORCID. Introduza o endereço de e-mail ou o ORCID iD associado com o perfil ORCID, e depois clique no botão "enviar".</message>
+	<message key="plugins.generic.orcidProfile.noData">Não foram encontrados dados no ORCID.</message>
+	<message key="plugins.generic.orcidProfile.emailOrOrcid">Endereço de E-Mail ou ORCID iD:</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.title">Configurações da API ORCID</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.hidden">escondido</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.description">Configure a API ORCID para transferir informação do perfil ORCID para o perfil de utilizador.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.description.globallyconfigured">A API ORCID foi configurada de maneira global pelo servidor de hospedagem. As credenciais a seguir foram salvas.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath">API ORCID</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.public">Público</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.publicSandbox">Caixa de Experiências Pública</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.member">Membro</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.memberSandbox">Caixa de Experiências para Membros</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidClientId">ID do cliente</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidClientSecret">Senha do cliente</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidScope">Escopo de Acesso ao Perfil</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.mailSectionTitle">Configurações de E-mail</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.sendMailToAuthorsOnPublication">Enviar e-mail para solicitar autorização do ORCID dos autores do artigo na publicação de um novo fascículo</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logSectionTitle">Log de pedidos ORCID</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.help">Selecione a quantidade de saída de log escrita pelo plugin</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.error">Erros</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.all">Tudo</message>
+	<message key="plugins.generic.orcidProfile.author.accessDenied">Acesso ao ORCID foi negado em</message>
+	<message key="plugins.generic.orcidProfile.author.accessTokenStored">Acesso ao registro ORCID concedido com o escopo {$orcidAccessScope}, válido até</message>
+	<message key="plugins.generic.orcidProfile.author.requestAuthorization">Enviar e-mail para solicitar autorização ORCID do contribuidor</message>
+	<message key="plugins.generic.orcidProfile.author.deleteORCID">Apagar o ORCID iD e o token de acesso!</message>
+	<message key="plugins.generic.orcidProfile.author.orcidEmptyNotice">Veja abaixo para solicitar o ORDID iD autenticado</message>
+	<message key="plugins.generic.orcidProfile.author.unauthenticated">ORCID iD não autenticado! Por favor, solicite a autenticação do colaborador.</message>
+	<message key="plugins.generic.orcidProfile.verify.title">Autorização ORCID</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.success">A submissão foi adicionada ao seu registro ORCID.</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.failure">A submissão não pôde ser adicionada ao seu registro ORCID.</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.notpublished">A submissão será adicionada ao seu registro ORCID durante a publicação.</message>
+	<message key="plugins.generic.orcidProfile.verify.success">Seu ORCID iD foi verificado e associado com sucesso à submissão.</message>
+	<message key="plugins.generic.orcidProfile.verify.failure">Seu ORCID iD não pôde ser verificado. O link não é mais válido.</message>
+	<message key="plugins.generic.orcidProfile.verify.duplicateOrcid">Um ORDID iD já estava armazenado para esta submissão.</message>
+	<message key="plugins.generic.orcidProfile.verify.denied">Você negou acesso ao seu registro ORCID.</message>
+	<message key="plugins.generic.orcidProfile.authFailure">O link de autorização do ORCID já foi usado ou é inválido.</message>
+	<message key="plugins.generic.orcidProfile.failure.contact">Por favor, entre em contato com o gerente da revista com o seu nome, ORCID iD e detalhes de sua submissão.</message>
+	<message key="plugins.generic.orcidProfile.fieldset">ORCID</message>
+	<message key="plugins.generic.orcidProfile.connect">Crie ou conecte seu ORCID iD</message>
+	<message key="plugins.generic.orcidProfile.authorise">Autorize e conecte seu ORCID iD</message>
+	<message key="plugins.generic.orcidProfile.about.title">O que é ORCID?</message>
+	<message key="plugins.generic.orcidProfile.about.orcidExplanation"><![CDATA[O ORCID é uma organização independente, sem fins lucrativos, que fornece um identificador persistente - um ORCID iD - que o distingue de outros pesquisadores e um mecanismo para vincular seus resultados e atividades de pesquisa ao seu iD. O ORCID está integrado em muitos sistemas usados por editores, financiadores, instituições e outros serviços relacionados à pesquisa. Saiba mais em <a href="https://orcid.org">orcid.org</a>.]]></message>
+	<message key="plugins.generic.orcidProfile.about.howAndWhy.title">Como e por que coletamos iDs ORCID?</message>
+	<message key="plugins.generic.orcidProfile.about.howAndWhy"><![CDATA[Este periódico está coletando seu ORCID iD para que possamos [adicionar propósito e distinguir entre a API do membro e a API pública]. Quando você clicar no botão "Autorizar" no pop-up ORCID, pediremos que você compartilhe seu ID usando um processo autenticado: seja por <a href="https://support.orcid.org/hc/en-us/articles/360006897454">registrando um ORCID iD</a> ou, se você já tiver um, <a href="https://support.orcid.org/hc/en-us/categories/360000661673">acessando a sua conta ORCID</a>, concedendo-nos permissão para obter seu ORCID iD. Fazemos isso para garantir que você esteja corretamente identificado e conectando com segurança seu ORCID iD.<br>
+	Saiba mais em <a href="https://orcid.org/blog/2017/02/20/whats-so-special-about-signing">O que há de tão especial em fazer login?</a>]]></message>
+	<message key="plugins.generic.orcidProfile.about.display.title">Onde os ORCID iDs são exibidos?</message>
+	<message key="plugins.generic.orcidProfile.about.display"><![CDATA[Para reconhecer que você usou seu iD e que ele foi autenticado, exibimos o ícone do ORCID iD <img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif" alt="iD icon" width="16" height="16" border="0"> ao lado do seu nome na página do artigo da sua submissão e no seu perfil de usuário público.<br>
+		Saiba mais em <a href="https://orcid.org/blog/2013/02/22/how-should-orcid-id-be-displayed">Como deve ser exibido um ORCID iD?</a>]]></message>
+
+	<message key="plugins.generic.orcidProfile.author.submission">Submissão ORCID</message>
+	<message key="plugins.generic.orcidProfile.connect">Criar ou Associar o seu ORCID iD</message>
+	<message key="plugins.generic.orcidProfile.author.submission.success">A sua submissão foi associada com sucesso com o seu ORCID iD.</message>
+	<message key="plugins.generic.orcidProfile.authFailure">O OJS não foi capaz de comunicar com o serviço do ORCID. Por favor contate o gestor da revista indicando o seu nome, ORCID iD, e detalhes da sua submissão.</message>
+	<message key="plugins.generic.orcidProfile.fieldset">ORCID</message>
+	<message key="plugins.generic.orcidProfile.manager.orcidProfileSettings">Configurações de Perfil ORCID</message>
+	<message key="plugins.generic.orcidProfile.author.submission.failure">A sua submissão não foi associada com sucesso com o seu ORCID iD. Contacte o gestor do periódico com o seu nome, ORCID iD, e detalhes da sua submissão.</message>
+</locale>

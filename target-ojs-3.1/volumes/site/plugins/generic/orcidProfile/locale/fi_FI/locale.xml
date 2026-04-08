@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../../../../lib/pkp/dtd/locale.dtd">
+
+<!--
+  * plugins/generic/orcidPlugin/locale/fi_FI/locale.xml
+  *
+  * Copyright (c) 2015-2019 University of Pittsburgh
+  * Copyright (c) 2014-2019 Simon Fraser University
+  * Copyright (c) 2003-2019 John Willinsky
+  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+  *
+  * ORCID Profile plugin localization strings
+  -->
+ 
+<locale name="fi_FI" full_name="Suomi">
+
+	<message key="plugins.generic.orcidProfile.displayName">ORCID-lisäosa</message>
+	<message key="plugins.generic.orcidProfile.description"><![CDATA[Helpottaa ORCID-tunnisteiden käyttöä OJS-järjestelmässä.]]></message>
+	<message key="plugins.generic.orcidProfile.instructions">Voit esitäyttää lomakkeen ORCID-tilisi tiedoilla. Anna ORCID-tunniste tai siihen liitetty sähköpostiosoite ja paina "Lähetä".</message>
+	<message key="plugins.generic.orcidProfile.noData">Tietoja ei löytynyt.</message>
+	<message key="plugins.generic.orcidProfile.emailOrOrcid">Sähköpostiosoite tai ORCID-tunniste:</message>
+	<message key="plugins.generic.orcidProfile.submitAction">Lähetä</message>
+	<message key="plugins.generic.orcidProfile.manager.orcidProfileSettings">ORCID-profiilin asetukset</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.description">Määritä ORCID-rajapinta, jotta voit hakea tietoja ORCID-tileistä OJS-järjestelmän käyttäjäprofiiliin. Tietojen päivitys OJS-järjestelmästä ORCID-tilille vaatii maksullisen rajapinnan.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath">ORCID-rajapinta (ORCID API)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.public">Julkinen (Public)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.publicSandbox">Julkinen testirajapinta (Public Sandbox)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.member">Asiakas (Member)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidProfileAPIPath.memberSandbox">Asiakkaiden testirajapinta (Member Sandbox)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidClientId">Asiakas ID (Client ID)</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidClientSecret">Asiakas avain (Client Secret)</message>
+	<message key="plugins.generic.orcidProfile.author.submission">Käsikirjoituksen ORCID-tunniste</message>
+	<message key="plugins.generic.orcidProfile.author.submission.success">Käsikirjoitus on liitetty onnistuneesti ORCID-tunnisteen kanssa.</message>
+	<message key="plugins.generic.orcidProfile.author.submission.failure">Käsikirjoitusta ei onnistuttu liittämään ORCID-tunnisteen kanssa. Ota yhteyttä lehden toimituskuntaan ja ilmoita nimesi, ORCID-tunnisteesi sekä käsikirjoituksesi otsikko.</message>
+	<message key="plugins.generic.orcidProfile.authFailure">ORCID-tunnisteen vahvistuslinkkiä on jo käytetty tai se ei ole voimassa.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.title">ORCID-rajapinnan asetukset</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.hidden">piilotettu</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.description.globallyconfigured">ORCID-rajapinta on määritetty ylläpitäjän toimesta alla olevien tietojen mukaisesti.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.mailSectionTitle">Sähköpostin asetukset</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.sendMailToAuthorsOnPublication">Lähetä kirjoittajille sähköposti, jossa pyydetään ORCID-tunnisteiden liittämistä julkaistuihin artikkeleihin, kun uusi numero on julkaistu.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logSectionTitle">ORCID-pyyntöjen loki</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.help">Valitse millä tarkkuudella lisäosan tekemät pyynnöt tallennetaan.</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.error">Virheet</message>
+	<message key="plugins.generic.orcidProfile.manager.settings.logLevel.all">Kaikki</message>
+	<message key="plugins.generic.orcidProfile.author.accessDenied">ORCID-pyyntö kiellettiin</message>
+	<message key="plugins.generic.orcidProfile.author.accessTokenStored">Pääsy ORCID-tietoihin laajuudella {$orcidAccessScope}, voimassa</message>
+	<message key="plugins.generic.orcidProfile.author.requestAuthorization">Lähetä sähköposti, jolla pyydät tekijää vahvistamaan ORCID-tunnisteensa</message>
+	<message key="plugins.generic.orcidProfile.author.deleteORCID">Poista ORCID ja käyttöoikeustunniste</message>
+	<message key="plugins.generic.orcidProfile.author.orcidEmptyNotice">Alla lisätietoja autentikoitujen ORCID-tunnisteiden keräämiseen</message>
+	<message key="plugins.generic.orcidProfile.author.unauthenticated">ORCID-tunnistetta ei ole vahvistettu. Ole hyvä ja pyydä vahvistus tekijältä.</message>
+	<message key="plugins.generic.orcidProfile.verify.title">ORCID-vahvistus</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.success">Käsikirjoitus on lisätty ORCID-tilillesi</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.failure">Käsikirjoitusta ei voitu lisätä ORCID-tilillesi</message>
+	<message key="plugins.generic.orcidProfile.verify.sendSubmissionToOrcid.notpublished">Käsikirjoitus lisätään ORCID-tilillesi sen julkaisun yhteydessä.</message>
+	<message key="plugins.generic.orcidProfile.verify.success">ORCID-tunnisteesi on vahvistettu ja liitetty käsikirjoitukseen.</message>
+	<message key="plugins.generic.orcidProfile.verify.failure">ORCID-tunnistetta ei voitu vahvistaa. Linkki ei ole enää voimassa.</message>
+	<message key="plugins.generic.orcidProfile.verify.duplicateOrcid">ORCID-tunniste on jo tallennettu tälle käsikirjoitukselle</message>
+	<message key="plugins.generic.orcidProfile.verify.denied">Olet kieltänyt pääsyn ORCDI-tilillesi</message>
+	<message key="plugins.generic.orcidProfile.failure.contact">OJS-järjestelmä ei saanut yhteyttä ORCID-palveluun. Ota yhteyttä lehden toimituskuntaan ja ilmoita nimesi, ORCID-tunnisteesi sekä käsikirjoituksesi otsikko.</message>
+	<message key="plugins.generic.orcidProfile.fieldset">ORCID</message>
+	<message key="plugins.generic.orcidProfile.connect">Luo tai yhdistä ORCID-tunniste</message>
+	<message key="plugins.generic.orcidProfile.authorise">Vahvista ja yhdistä ORCID-tunnisteesi</message>
+	<message key="plugins.generic.orcidProfile.about.title">Mikä on ORCID?</message>
+	<message key="plugins.generic.orcidProfile.about.orcidExplanation"><![CDATA[ORCID on itsenäinen ja voittoa tavoittelematon organisaatio, joka ylläpitää tutkijoiden tunnistamiseen tarkoitettuja ORCID-tunnisteita. Tunnisteen avulla voit ilmoittaa ja linkittää tekijyytesi esimerkiksi artikkeleihin ja aineistoihin. ORCID on integroitu moniin erilaisiin järjestelmiin, kuten rahoittajien hakujärjestelmiin ja julkaisujärjestelmiin. Lue lisää <a href="https://orcid.org">orcid.org</a>.]]></message>
+	<message key="plugins.generic.orcidProfile.about.howAndWhy.title">Miten ja miksi keräämme ORCID-tunnisteita?</message>
+	<message key="plugins.generic.orcidProfile.about.howAndWhy"><![CDATA[Kun painat Vahvista-nappia ORCID-ikkunassa, pyydämme sinua antamaan ORCID-tunnisteesi joko <a href="https://support.orcid.org/hc/en-us/articles/360006897454">rekisteröimällä uuden ORCID-tunnisteen</a> tai, mikäli sinulla jo tunniste, <a href="https://support.orcid.org/hc/en-us/categories/360000661673">kirjautumalla ORCID-tilillesi</a> ja antamalla meille luvan hakea ORCID-tunnisteesi. Teemme tämän varmistaaksemme, että tallennettu ORCID-tunniste on vahvistettu ja oikean henkilön tunniste. Lue lisää <a href="https://orcid.org/blog/2017/02/20/whats-so-special-about-signing">miksi tämä on niin tärkeää.</a>]]></message>
+	<message key="plugins.generic.orcidProfile.about.display.title">Missä ORCID-tunnisteet näkyvät?</message>
+	<message key="plugins.generic.orcidProfile.about.display"><![CDATA[Vahvistettujen ORCID-tunnisteiden yhteydessä näkyy ORCID-logo <img src="https://orcid.org/sites/default/files/images/orcid_16x16(1).gif" alt="iD icon" width="16" height="16" border="0"> tekijän nimen vieressä ja julkisessa käyttäjäprofiilissa.
+Lue lisää siitä<a href="https://orcid.org/blog/2013/02/22/how-should-orcid-id-be-displayed">miten ORCID-tunniste tulisi esittää.</a>]]></message>
+	<message key="plugins.generic.orcidProfile.manager.settings.orcidScope">Profiilin pääsyoikeuden laajuus</message>
+</locale>

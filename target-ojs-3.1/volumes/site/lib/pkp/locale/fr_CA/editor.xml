@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE locale SYSTEM "../../dtd/locale.dtd">
+
+<!--
+  * locale/fr_CA/editor.xml
+  *
+  * Copyright (c) 2014-2019 Simon Fraser University
+  * Copyright (c) 2003-2019 John Willinsky
+  * Distributed under the GNU GPL v2. For full terms see the file docs/COPYING.
+  *
+  * Localization strings.
+  -->
+
+<locale name="fr_CA" full_name="Français (Canada)">
+	<message key="editor.submissionLibrary">Bibliothèque de soumission</message>
+	<message key="editor.review.notInitiated">Le processus de révision n'a pas encore débuté.</message>
+	<message key="editor.submission.copyediting.personalMessageToUser">Message à l'utilisateur-trice</message>
+	<message key="editor.submission.externalReviewDescription">Sélectionner les fichiers ci-dessous devant être envoyés à l'étape d'évaluation</message>
+	<!-- Add file or auditor to editor/audit grids -->
+	<message key="editor.submission.fileAuditor.form.fileRequired">Vous devez choisir au moins un fichier qui sera assigné à l'utilisateur-trice.</message>
+	<message key="editor.submission.fileAuditor.form.messageRequired">Vous devez ajouter un message personnalisé.</message>
+	<message key="editor.submission.fileAuditor.skipEmail">Ne pas envoyer le courriel au,à la vérificateur-trice.</message>
+	<message key="editor.submission.fileAuditor.form.userRequired">Vous devez choisir un-e utilisateur-trice à assigner.</message>
+	<message key="editor.submission.uploadSelectFiles">Téléverser/Sélectionner les fichiers</message>
+	<message key="editor.submission.selectFiles">Sélectionner les fichiers</message>
+	<message key="editor.submission.revisions">Révisions</message>
+	<message key="editor.submission.review.reviewersDescription"><![CDATA[Utiliser <em>Ajouter un-e évaluateur-trice</em> pour inviter des lecteurs-trices à évaluer les fichiers soumis. L'icône en forme de carnet indique qu'une évaluation a été soumise. Celui-ci indiquera <em>coché</em> lorsqu'elle aura été consultée. Si les évaluations sont en retard, l'icône d'une enveloppe rouge s'affichera à titre de rappel pour les évaluateurs-trices.]]></message>
+	<message key="editor.submission.addReviewer">Ajouter un-e évaluateur-trice</message>
+	<message key="editor.submission.findAndSelectReviewer">Trouver un-e évaluateur-trice</message>
+	<message key="editor.submission.findAndSelectUser">Trouver un-e utilisateur-trice</message>
+	<message key="editor.submission.fileList.includeAllStages">Afficher les fichiers de toutes les étapes accessibles du processus éditorial.</message>
+	<message key="editor.submission.review.currentFiles">Fichiers actuels d'évaluation du cycle : {$round}.</message>
+	<message key="editor.submission.backToSearch">Revenir à la recherche</message>
+	<message key="editor.review.createReviewer">Créer un-e nouvel-elle évaluateur-trice</message>
+	<message key="editor.review.enrollReviewer.short">Recruter un-e utilisateur-trice existant-e</message>
+	<message key="editor.review.unassignReviewer">Retirer le privilège de l'évaluateur-trice</message>
+	<message key="editor.submissionReview.reviewType">Type d'évaluation</message>
+	<message key="editor.submissionReview.sendEmail">Envoyer un courriel d'avis à le,la ou les auteur-e-s: {$authorName}</message>
+	<message key="editor.submissionReview.sendEmail.editors">Envoyer un courriel d'avis au,à la ou aux rédacteur-trice-s: {$editorNames}</message>
+	<message key="editor.submissionReview.skipEmail">Ne pas envoyer de courriel d'avis</message>
+	<message key="editor.submissionReview.open">Évaluation ouverte</message>
+	<message key="editor.submissionReview.blind">Évaluation en simple l'aveugle</message>
+	<message key="editor.submissionReview.doubleBlind">Évaluation en double aveugle</message>
+	<message key="editor.submissionReview.restrictFiles">Fichiers devant être évalués</message>
+	<message key="editor.submissionReview.restrictFiles.hide">Fermer la sélection de fichiers</message>
+	<message key="editor.submissionReview.editReview">Modifier l'évaluation</message>
+	<message key="editor.review.anonymousReviewer">Évaluateur-trice anonyme</message>
+	<message key="editor.review.personalMessageToReviewer">Envoyer un courriel à l'évaluateur-trice</message>
+	<message key="editor.review.importantDates">Dates importantes</message>
+	<message key="editor.review.uploadRevision">Téléverser la révision</message>
+	<message key="editor.review.newReviewRound">Un nouveau cycle d'évaluation est requis</message>
+<message key="editor.review.NotifyAuthorRevisions">Les révisions ne seront pas assujetties à un nouveau cycle d'évaluation par les pairs</message>
+	<message key="editor.review.NotifyAuthorResubmit">Les révisions seront assujetties à un nouveau cycle d'évaluation par les pairs</message>
+	<message key="editor.review.dateAccepted">Date d'acceptation de l'évaluation</message>
+	<message key="editor.review.reviewsAdded">Évaluations ajoutées au corps du message.</message>
+	<message key="editor.review.noReviews">Aucune évaluation des pairs à importer</message>
+	<message key="editor.review.reminder">Rappel d'évaluation de la soumission</message>
+	<message key="editor.review.thankReviewer">Remercier l'évaluateur-trice</message>
+	<message key="editor.review.reminderError">Erreur d'envoi du rappel d'évaluation</message>
+	<message key="editor.review.thankReviewerError">Erreur d'envoi du remerciement à l'évaluateur-trice</message>
+	<message key="editor.review.skipEmail">Ne pas envoyer le courriel à l'évaluateur-trice</message>
+	<message key="editor.review.sendReminder">Envoyer un rappel</message>
+	<message key="editor.review.readReview">Consulter l'évaluation</message>
+	<message key="editor.review.readNewReview">Consulter la nouvelle évaluation</message>
+	<message key="editor.review.responseDue">Réponse due pour le : {$date}</message>
+	<message key="editor.review.requestSent">Demande envoyée</message>
+	<message key="editor.review.requestAccepted">Demande acceptée</message>
+	<message key="editor.review.requestDeclined">Demande refusée</message>
+	<message key="editor.review.requestDeclined.tooltip">L'évaluateur-trice a refusé cette demande d'évaluation.</message>
+	<message key="editor.review.revertDecision">Renverser la décision</message>
+	<message key="editor.review.reviewDue">Évaluation due pour le : {$date}</message>
+	<message key="editor.review.reviewDueDate">Date d'échéance de l'évaluation</message>
+	<message key="editor.review.reviewCompleted">Évaluation terminée</message>
+	<message key="editor.review.reviewConfirmed">Évaluation confirmée</message>
+	<message key="editor.review.reviewSubmitted">Évaluation soumise</message>
+	<message key="editor.review.reviewerComments">Commentaires de l'évaluateur-trice</message>
+	<message key="editor.review.rateReviewer">Appréciation de l'évaluateur-trice</message>
+	<message key="editor.review.rateReviewer.description">Coter la qualité de l'évaluation fournie. Cette information n'est pas partagée avec l'évaluateur-trice.</message>
+	<message key="editor.review.reviewerRating.none">Aucune cote</message>
+	<message key="editor.review.mustSelect">Vous devez sélectionner un évaluateur</message>
+	<message key="editor.review.errorAddingReviewer">Il y a eu une erreur au moment d'ajouter l'évaluateur-trice. Veuillez essayer de nouveau.</message>
+	<message key="editor.review.errorDeletingReviewer">Il y a eu une erreur au moment de supprimer l'évaluateur-trice. Veuillez essayer de nouveau.</message>
+	<message key="editor.review.userGroupSelect">Recruter l'utilisateur-trice dans ce groupe d'évaluateurs-trices</message>
+	<message key="editor.review.unconsiderReviewText">Souhaitez-vous indiquer que cette évaluation ne doit pas être prise en compte ? L'historique des évaluations sera conservé.</message>
+	<message key="editor.review.unconsiderReview">Ne pas tenir compte de cette évaluation.</message>
+	<message key="editor.review.readConfirmation">Une fois l'évaluation consultée, cliquer sur « Confirmer » pour indiquer que le processus d'évaluation peut se poursuivre. Si l'évaluateur-trice a soumis son évaluation ailleurs, vous pouvez téléverser le fichier ci-dessous puis cliquer sur « Confirmer » pour poursuivre.</message>
+	<message key="editor.submission.selectCopyedingFiles">Fichiers en révision</message>
+	<message key="editor.submission.selectReviewer">Sélectionner l'évaluateur-trice</message>
+	<message key="editor.submission.taskDueDate">Date d'échéance de la tâche</message>
+	<message key="editor.submission.taskSchedule">Planification de la tâche</message>
+	<message key="editor.review.enrollReviewer">Recruter un-e utilisateur-trice existant-e à titre d'évaluateur-trice</message>
+	<message key="editor.submission.noAuditRequested">Aucune demande de vérification n'a été faite pour ce fichier.</message>
+	<message key="editor.submission.personalMessageToUser">Un courriel sera envoyé à l'utilisateur-trice</message>
+	<message key="editor.submission.proof.reminder">Rappel concernant les ébauches</message>
+	<message key="editor.submission.editorial.approveCopyeditDescription">Le fichier révisé doit être approuvé avant de passer à l'étape de production. Souhaitez-vous approuver ce fichier ?</message>
+	<message key="editor.submission.editorial.disapproveCopyeditDescription">Si ce fichier n'est pas approuvé, il ne pourra pas passer à l'étape de production. Souhaitez-vous désapprouver ce fichier ?</message>
+	<message key="editor.submission.addAuditor">Assignation d'un-e vérificateur-trice</message>
+	<message key="editor.submission.copyedit.manageCopyeditFilesDescription">Tout fichier qui a déjà été téléversé à toute étape de soumission peut être ajouté à la liste des fichiers à réviser en cochant la case « Inclure » ci-dessous et en cliquant sur « Rechercher ». Tous les fichiers disponibles seront répertoriés et peuvent être choisis pour inclusion. Les fichiers supplémentaires qui ne sont pas déjà versés à l'une des étapes peuvent être ajoutés à la liste en cliquant sur le lien « Téléverser un fichier ».</message>
+	<message key="editor.review">Évaluation</message>
+	<message key="editor.review.reviewDetails">Renseignements sur l'évaluation</message>
+	<message key="editor.review.noReviewFilesUploaded">Aucun fichier téléchargé</message>
+	<message key="editor.review.noReviewFilesUploaded.details">Vous n'avez téléversé aucun fichier d'évaluation</message>
+	<message key="editor.review.emailReviewer">Envoyer un courriel à l'évaluateur-trice</message>
+	<message key="editor.submission.production.productionReadyFiles">Fichiers prêts pour la production</message>
+	<message key="editor.submission.newRound">Nouveau cycle d'évaluation</message>
+	<message key="editor.submissionReview.recordDecision">Enregistrement de la décision éditoriale</message>
+	<message key="editor.submissionReview.recordRecommendation">Enregistrer la recommandation éditoriale</message>
+	<message key="editor.submissionReview.recordRecommendation.notifyEditors">Aviser les rédacteurs-trices</message>
+	<message key="editor.submissionReview.recordRecommendation.skipEmail">Ne pas envoyer de courriel aux rédacteurs-trices</message>
+	<message key="editor.submissionReview.recordRecommendation.createDiscussion">Créer une discussion d'évaluation à propos de cette recommandation.</message>
+	<message key="editor.submissionReview.recordRecommendation.skipDiscussion">Ne pas créer une discussion d'évaluation.</message>
+	<message key="editor.submission.newRoundDescription">Vous êtes sur le point de créer un nouveau cycle d'évaluation pour cette soumission. Les fichiers qui n'ont pas été utilisés dans un cycle précédent sont listés ci-dessous.</message>
+	<message key="editor.submission.createNewRound">Créer un nouveau cycle d'évaluation</message>
+	<message key="editor.article.reviewForms">Formulaires d'évaluation</message>
+	<message key="editor.article.selectReviewForm">Sélectionner un formulaire d'évaluation</message>
+	<message key="editor.article.confirmChangeReviewForm">Avertissement : La modification du formulaire d'évaluation aura une incidence sur les réponses que les évaluateurs auront faites en utilisant ce formulaire. Êtes-vous certain-e de vouloir continuer ?</message>
+	<message key="editor.submission.noReviewerFilesSelected">Aucun fichier sélectionné</message>
+	<message key="editor.submission.noReviewerFilesSelected.details">Vous n'avez pas sélectionné de fichiers à évaluer pour l'évaluateur-trice.</message>
+	<message key="submission.queries.subjectRequired">Un sujet de discussion est requis</message>
+	<message key="submission.queries.messageRequired">Un message pour la discussion est requis</message>
+	<message key="submission.queries.attachedFiles">Fichiers joints</message>
+	<message key="grid.action.editQuery">Éditer la discussion</message>
+	<message key="editor.submission.query.manageQueryNoteFilesDescription">Les fichiers peuvent être joints à cette discussion à partir de la liste ci-dessous.</message>
+	<message key="editor.submission.selectedReviewer">Évaluateur-trice sélectionné-e</message>
+	<message key="editor.submission.proofreading.approveProof">Approuver l'ébauche</message>
+	<message key="editor.submission.proofreading.revokeProofApproval">Retirer l'approbation de l'ébauche</message>
+	<message key="editor.submission.proofreading.confirmCompletion">Accepter l'ébauche pour indiquer que la révision est complétée et que le fichier est prêt à être publié.</message>
+<message key="editor.submission.proofreading.confirmRemoveCompletion">Retirer l'approbation l'ébauche et indiquer que la révision n'est pas complétée et que ce fichier n'est pas prêt pour la publication.</message>
+	<message key="editor.publicIdentificationNumericNotAllowed">L'identifiant public « {$publicIdentifier} » ne peut être un numéro.</message>
+	<message key="editor.publicIdentificationPatternNotAllowed">Le modèle {$pattern} ne peut pas être utilisé comme identifiant public.</message>
+	<!-- Reviewer selection lists -->
+	<message key="reviewer.list.count">{$count} évaluateur-trice-s</message>
+	<message key="reviewer.list.itemsOfTotal">{$count} de {$total} évaluateur-trice-s</message>
+	<message key="reviewer.list.filterRating">Évalué au moins à</message>
+	<message key="reviewer.list.activeReviews">{$count} active(s)</message>
+	<message key="reviewer.list.activeReviewsDescription">Évaluation(s) en cours</message>
+	<message key="reviewer.list.completedReviews">Évaluation(s) complétée(s)</message>
+	<message key="reviewer.list.declinedReviews">Demande(s) d'évaluation refusée(s)</message>
+	<message key="reviewer.list.reviewerRating">Évaluation de l'évaluateur-trice : {$rating}</message>
+	<message key="reviewer.list.daysSinceLastAssignment">Il y a {$days} jours</message>
+	<message key="reviewer.list.daySinceLastAssignment">Hier</message>
+	<message key="reviewer.list.daysSinceLastAssignmentDescription">Nombre de jours depuis la dernière évaluation attribuée</message>
+	<message key="reviewer.list.averageCompletion">Moyenne de jours pour compléter une évaluation</message>
+	<message key="reviewer.list.neverAssigned">Jamais assigné-e</message>
+	<message key="reviewer.list.currentlyAssigned">Cet,Cette évaluateur-trice a déjà été assigné-e à l'évaluation de cette soumission.</message>
+<message key="reviewer.list.warnOnAssign">Cet,Cette évaluateur-trice est verrouillé-e car un rôle lui a été attribué qui lui permet de connaître l'identité de l'auteur-e. L'évaluation par les pairs en aveugle ne peut être garantie. Souhaitez-vous tout de même déverrouiller cet ou cette évaluateur-trice ?</message>
+	<message key="reviewer.list.warnOnAssignUnlock">Déverrouiller</message>
+	<message key="reviewer.list.reviewInterests">Champs d'intérêt pour l'évaluation</message>
+	<message key="reviewer.list.biography">Biographie</message>
+</locale>
+
