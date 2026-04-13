@@ -1,0 +1,12 @@
+{
+  "target": "http://localhost/ojs",
+  "auth": {
+    "cookie": "session=abc123"
+  },
+  "scans": {
+    "crawler": true,
+    "internal": true,
+    "external_custom": true,
+    "external_nuclei": true
+  }
+}
