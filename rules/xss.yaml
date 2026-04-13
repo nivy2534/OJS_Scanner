@@ -1,0 +1,21 @@
+id: ojs-debug-test
+
+info:
+  name: Debug Error Disclosure
+  severity: medium
+
+requests:
+  - method: GET
+    path:
+      - "/{{journal}}/submission/wizard"
+
+payloads:
+  payload:
+    - "'"
+    - "\""
+    - "<script>alert(1)</script>"
+
+matchers:
+  - type: regex
+    words:
+      - 'id="commentsToEditor'
