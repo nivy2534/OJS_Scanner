@@ -1,0 +1,20 @@
+rules:
+  - id: ojs-user-input-to-template-output
+    mode: taint
+
+    pattern-sources:
+      - pattern: $_GET[$X]
+      - pattern: $_POST[$X]
+      - pattern: $_REQUEST[$X]
+      - pattern: $request->getUserVar(...)
+
+    pattern-sinks:
+      - pattern: print(...)
+      - pattern: printf(...)
+      - pattern: $templateMgr->assign(...)
+
+    message: Possible Stored XSS (user input reaches output sink)
+    severity: ERROR
+
+    languages:
+      - php

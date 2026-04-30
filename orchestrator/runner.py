@@ -9,6 +9,14 @@ async def run(cmd, cwd=None):
     )
 
     stdout, stderr = await process.communicate()
+    
+    stdout_str = stdout.decode()
+    stderr_str = stderr.decode()
+
+    if stderr_str:
+        print(stderr_str, end="")
+    if stdout_str:
+        print(stdout_str, end="")
 
     return {
         "code": process.returncode,

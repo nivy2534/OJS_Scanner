@@ -94,6 +94,27 @@ class Crawler:
                     if domain in full and full not in visited:
                         queue.append(full)
 
+            PROBE_ENDPOINTS = [
+                "management/settings/context", "management/settings/website",
+                "management/settings/workflow", "management/settings/distribution",
+                "management/settings/access", "management/tools",
+                "stats/publications/publications", "stats/editorial/editorial",
+                "stats/users/users", "stats/reports", "submissions", "manageIssues",
+                "submission/wizard",
+            ]
+
+            print("\n[*] Probing admin endpoints...")
+            for ep in PROBE_ENDPOINTS:
+                url = f"{domain}/{journal}/{ep}"
+                if url in visited:
+                    continue
+                page.goto(url, wait_until="domcontentloaded")
+                final = page.url
+                is_auth = "login" not in final
+                print(f"  {'✓' if is_auth else '✗'} {url} → {final}")
+                if is_auth:
+                    results.append(url)
+            
             browser.close()
 
         return results

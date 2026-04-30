@@ -1,12 +1,17 @@
 {
-  "target": "http://localhost/ojs",
+  "target": "http://localhost:8081/",
+  "journal": "coba",
   "auth": {
-    "cookie": "session=abc123"
+    "cookie": "session=abc123",
+    "csrf_token": "def456",
+    "username": "admin",
+    "password": "OJS_Scanner_1"
   },
   "scans": {
     "crawler": true,
     "internal": true,
     "external_custom": true,
     "external_nuclei": true
-  }
+  },
+  "url": "/home/nivy/ojs-source"
 }

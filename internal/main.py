@@ -1,10 +1,12 @@
 import os
 import json
 import subprocess
+import shutil
 from glob import glob
 from datetime import datetime
 
 RULES_DIR = os.path.join(os.path.dirname(__file__), "rules")
+SEMGREP = shutil.which("semgrep")
 
 def load_rule(path=None):
     rules = []
@@ -20,18 +22,28 @@ def load_rule(path=None):
 def run_semgrep(target, rules):
     output_file = get_output_file()
 
-    rule_args = " ".join([f"-c {r}" for r in rules])
+    rule_args = " ".join([f'-c "{r}"' for r in rules])
+    cmd = f'{SEMGREP} {rule_args} --json --no-git-ignore "{target}" > "{output_file}"'
 
-    cmd = f"semgrep {rule_args} -j --json-seq --no-git-ignore {target} > {output_file}"
+    print(f"[DEBUG] semgrep cmd: {cmd}")  
+    print(f"[DEBUG] semgrep path: {SEMGREP}")
 
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+
+    print(f"[DEBUG] semgrep returncode: {result.returncode}")
+    print(f"[DEBUG] semgrep stdout: {result.stdout}")
+    print(f"[DEBUG] semgrep stderr: {result.stderr}")
+
     if result.returncode not in [0,1]:  # semgrep returns 1 if it finds issues
         raise RuntimeError(f"Error running semgrep: {result.stderr}")
+    return output_file
 
 def get_output_file():
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"semgrep_{timestamp}.json"
-    return os.path.join(os.path.dirname(__file__), "../results", filename)
+    results_dir = os.path.join(os.path.dirname(__file__), "../results")
+    os.makedirs(results_dir, exist_ok=True)  
+    return os.path.join(results_dir, filename)
 
 def parse_result(path):
     """
@@ -73,7 +85,8 @@ def scan(target):
     return findings
 
 if __name__ == "__main__":
-    target = "."
+    import sys
+    target = sys.argv[1] if len(sys.argv) > 1 else os.path.expanduser("~/ojs-source")
     results = scan(target)
 
     print("\n=== SEMGREP RESULTS ===")

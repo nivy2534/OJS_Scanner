@@ -1,0 +1,41 @@
+id: broken-auth
+name: Broken Authentication
+severity: critical
+type: probe   # tidak fuzz, hanya hit endpoint langsung
+
+requests:
+  - method: GET
+    targets: [path]
+    paths:
+      - "/api/v1/users"
+      - "/api/v1/_submissions"
+      - "/index/admin"
+      - "/index/admin/contexts"
+      - "/index/admin/settings"
+      - "/index/admin/systemInfo"
+      - "/{journal}/management/settings/context"
+      - "/{journal}/management/settings/website"
+      - "/{journal}/dashboard"
+
+matchers:
+  - type: status
+    status: [200]
+
+  - type: word
+    part: body
+    condition: or
+    words:
+      - "dashboard"
+      - "settings"
+      - "admin"
+      - "\"id\":"
+      - "\"userName\":"
+
+  - type: word
+    part: body
+    negate: true   # jangan match kalau ada ini
+    words:
+      - "login"
+      - "403"
+      - "Forbidden"
+      - "Unauthorized"

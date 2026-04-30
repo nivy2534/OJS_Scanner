@@ -1,0 +1,31 @@
+id: idor-numeric
+name: IDOR Numeric Parameter
+severity: high
+type: fuzz
+
+requests:
+  - method: GET
+    targets: [query_params]
+    fuzzing:
+      - mode: replace
+        params_pattern: "id|user|uid|account|submission|article"  # hanya param ini
+        payloads:
+          - "1"
+          - "2"
+          - "3"
+          - "0"
+          - "-1"
+          - "9999"
+
+matchers:
+  - type: status
+    status: [200]
+
+  - type: word
+    part: body
+    condition: or
+    words:
+      - "email"
+      - "username"
+      - "profile"
+      - "submission"

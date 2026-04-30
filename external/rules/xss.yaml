@@ -1,25 +1,27 @@
-id: ojs-debug-test
-
-info:
-  name: Debug Error Disclosure
-  severity: medium
+id: xss-reflected
+name: Reflected XSS
+severity: high
+type: fuzz
 
 requests:
   - method: GET
-    path:
-      - "/{{journal}}/submission/wizard"
-    
+    targets: [query_params]
     fuzzing:
-      - type: query
-        param: "*"
+      - mode: replace
         payloads:
-          - "'"
-          - "\""
           - "<script>alert(1)</script>"
-        mode: replace   # replace | append | prefix
+          - "<img src=x onerror=alert(1)>"
+          - "'\"><svg onload=alert(1)>"
+          - "javascript:alert(1)"
 
 matchers:
-  - type: regex
+  - type: word
     part: body
+    condition: or
     words:
-      - 'id="commentsToEditor"'
+      - "<script>alert(1)</script>"
+      - "onerror=alert(1)"
+      - "onload=alert(1)"
+
+  - type: status
+    status: [200]
