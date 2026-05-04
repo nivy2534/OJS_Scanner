@@ -11,6 +11,9 @@ ARG BUILD_LABEL=notset
 # Stage 1: Download PKP source code from released tarball.
 FROM ${BUILD_PKP_APP_OS} AS pkp_code
 
+# Contoh posisi yang benar:
+FROM ${WEB_SERVER}
+
 ARG PKP_TOOL	    	\
     PKP_VERSION		\
     BUILD_PKP_APP_OS	\
@@ -27,6 +30,10 @@ RUN apk add --no-cache curl tar && \
 
 # Stage 2: Build PHP extensions and dependencies
 FROM ${WEB_SERVER} AS pkp_build
+
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    sed -i '/stretch-updates/d' /etc/apt/sources.list
 
 # Packages needed to build PHP extensions
 ENV PKP_DEPS="\
@@ -46,8 +53,6 @@ ENV PKP_DEPS="\
     libfreetype6-dev \
 \
     # Modern image formats support
-    libavif-dev \
-\
     # Graphics/X11 support
     libxpm-dev \
     libfontconfig1-dev \
@@ -101,6 +106,10 @@ RUN apt-get update && \
 # Stage 3: Final lightweight image
 FROM ${WEB_SERVER}
 
+RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
+    sed -i '/stretch-updates/d' /etc/apt/sources.list
+
 ARG PKP_TOOL \
     PKP_VERSION \
     WEB_SERVER \
@@ -141,9 +150,6 @@ ENV PKP_RUNTIME_LIBS="\
     libjpeg62-turbo \
     libpng16-16 \
     libfreetype6 \
-    libonig-dev \
-    libavif-dev \
-    libwebp-dev \
 \
     # Graphics/X11 support
     libxpm4 \
@@ -185,7 +191,7 @@ COPY --from=pkp_build /usr/local/bin/install-php-extensions /usr/local/bin/insta
 WORKDIR ${WWW_PATH_ROOT}/html
 
 # Copy source code and configuration files
-COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
+#COPY --from=pkp_code "${BUILD_PKP_APP_PATH}" .
 COPY "templates/pkp/root/" /
 COPY "volumes/config/apache.pkp.conf" "${PKP_WEB_CONF}"
 
@@ -196,6 +202,8 @@ COPY "volumes/config/apache.pkp.conf" "${PKP_WEB_CONF}"
 # - Add pkp-run-sheduled to crontab
 # - Set certificates
 # - Create container.version file
+COPY volumes/site/ .
+
 RUN a2enmod rewrite ssl && \
     mkdir -p /etc/ssl/apache2 "${WWW_PATH_ROOT}/files" /run/apache2 && \
     \

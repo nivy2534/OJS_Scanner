@@ -1,0 +1,17 @@
+---
+- name: Manajemen Docker OJS
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: Menghidupkan OJS (Start)
+      shell: docker compose start
+      args:
+        chdir: /mnt/c/Users/user/journalName
+      tags: start
+
+    - name: Mematikan OJS (Stop)
+      shell: docker compose stop
+      args:
+        chdir: /mnt/c/Users/user/journalName
+      tags: stop
