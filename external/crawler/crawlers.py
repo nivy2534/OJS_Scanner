@@ -56,6 +56,10 @@ class Crawlers:
         "$$$call$$$/grid/admin/context/context-grid",
     ]
 
+    SKIP_URLS = [
+        "signOut", "logout", "sign-out", "log-out"
+    ]
+
     API_PATTERNS = [
         r"/api/v[0-9]+/[a-zA-Z0-9_/\-]+",
         r"/\$\$\$call\$\$\$/[a-zA-Z0-9/_\-]+",
@@ -101,6 +105,7 @@ class Crawlers:
             "Accept-Encoding": "gzip, deflate, br",
             "Connection": "keep-alive"
         })
+        print(f"[*] Session initialized with cookies: {self.session.cookies.get_dict()}")
 
     def extract_menu_urls(self, html):
         """
@@ -337,6 +342,10 @@ class Crawlers:
 
             url_clean = urldefrag(url)[0]
             if url_clean in self.visited or depth > max_depth:
+                continue
+
+            if any(skip in url for skip in self.SKIP_URLS):
+                print(f"[!] Skipping dangerous URL: {url}")
                 continue
 
             self.visited.add(url_clean)

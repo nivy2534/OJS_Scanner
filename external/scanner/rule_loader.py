@@ -7,7 +7,7 @@ ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".." ))
 RULES_DIR = os.path.join(ROOT_DIR, "rules")
 
 def load_rule(path):
-    with open(path, "r") as f:
+    with open(path, "r", encoding='utf-8') as f:
         return yaml.safe_load(f)
     
 def load_all_rules(rule_ids=None):

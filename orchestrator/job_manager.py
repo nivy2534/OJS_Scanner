@@ -4,6 +4,7 @@ from .runner import run
 from internal import *
 from external.utils.session_manager import SessionManager
 from external.crawler.crawl import Crawlers
+from external.scanner.scanner import Scanner
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."  ))
@@ -25,16 +26,16 @@ class JobManager:
 
         loop = asyncio.get_event_loop()
         urls = await loop.run_in_executor(None, crawler.crawl)
-
+        
         # save ke file (sama seperti crawl.py standalone)
         urls_file = "../results/urls.txt"
         os.makedirs("../results", exist_ok=True)
-        with open(urls_file, "w") as f:
+        with open(urls_file, "w", encoding='utf-8') as f:
             for u in urls:
                 f.write(u + "\n")
 
         print(f"[+] {len(urls)} URLs saved to {urls_file}")
-        return urls_file
+        return urls_file, urls
 
     async def run_internal(self):
         print("[*] Running internal scanner...")
@@ -46,31 +47,30 @@ class JobManager:
         print(f"[DEBUG] internal stderr: {result['stderr']}")
         return result
 
-    async def run_external_custom(self, urls_file=None):
+    async def run_external_custom(self, urls_file=None, urls=None):
         print("[*] Running custom external scanner...")
 
-        from external.scanner.scanner import Scanner
-
+        print("[*] Re-authenticating before scan...")
         endpoints = []
         if urls_file and os.path.exists(urls_file):
-            with open(urls_file) as f:
+            with open(urls_file, encoding='utf-8') as f:  # ← fix 1
                 endpoints = [l.strip() for l in f if l.strip()]
 
-        scanner = Scanner(session=self.sm.session)  # ← lempar langsung
+        scanner = Scanner(session_manager=self.sm)
         findings = scanner.run(
-            endpoints=endpoints,
+            endpoints=urls or endpoints,
             base_url=self.target,
             journal=self.journal,
         )
 
         import json
         os.makedirs("../results", exist_ok=True)
-        with open("../results/scanner.json", "w") as f:
-            json.dump(findings, f, indent=2)
+        with open("../results/scanner.json", "w", encoding='utf-8') as f:  # ← fix 2
+            json.dump(findings, f, indent=2, ensure_ascii=False)
 
         print(f"[+] {len(findings)} findings saved to results/scanner.json")
         return {"code": 0, "findings": findings}
-
+    
     async def run_nuclei(self, urls_file):
         print("[*] Running nuclei via external_socket...")
 
@@ -93,14 +93,15 @@ class JobManager:
 
     async def execute(self):
         urls_file = None
+        urls = []
 
         # 1. crawler
         if self.config["scans"].get("crawler"):
-            urls_file = await self.run_crawler()
+            urls_file, urls = await self.run_crawler()
 
         if not urls_file:
             urls_file = "../results/urls.txt"
-            with open(urls_file, "w") as f:
+            with open(urls_file, "w", encoding='utf-8') as f:
                 f.write(self.target)
 
         tasks = []
@@ -113,7 +114,7 @@ class JobManager:
 
         # 3. external custom
         if self.config["scans"].get("external_custom"):
-           tasks.append(self.run_external_custom())
+           tasks.append(self.run_external_custom(urls_file, urls))
            tasks_names.append("external_custom")
 
         # 4. nuclei
@@ -131,10 +132,8 @@ class JobManager:
         for i, result in enumerate(results):
             name = tasks_names[i] if i < len(tasks_names) else f"task_{i}"
             if isinstance(result, Exception):
+                import traceback
                 print(f"[!] {name} gagal: {result}")
-            elif isinstance(result, dict) and result.get("code") != 0:
-                print(f"[!] {name} exit code {result['code']}")
-            else:
-                print(f"[✓] {name} selesai")
+                traceback.print_exception(type(result), result, result.__traceback__) 
 
         return results

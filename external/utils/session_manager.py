@@ -6,7 +6,6 @@ import json
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from requests.cookies import RequestsCookieJar
-import http.cookiejar
 
 class SessionManager:
 
@@ -125,6 +124,8 @@ class SessionManager:
 
     def _build_session(self) -> requests.Session:
         s = requests.Session()
+        s.cookies.clear()
+        s.cookies = requests.cookies.RequestsCookieJar()
         s.headers.update({
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -150,10 +151,7 @@ class SessionManager:
         login_url = f"{base_url}login"
 
         try:
-            # ✅ GET login page — server set OJSSID awal di sini
             r = self._session.get(login_url, verify=False, timeout=10)
-            
-            print(f"[DEBUG] Cookies setelah GET login: {[(c.name, c.value[:10], c.domain) for c in self._session.cookies]}")
             
             soup = BeautifulSoup(r.text, "html.parser")
             csrf_input = soup.find("input", {"name": "csrfToken"})
@@ -168,20 +166,13 @@ class SessionManager:
                 "Sec-Fetch-Site": "same-origin",
             })
 
-            # ✅ Inject cookie OJSSID yang ada ke header secara eksplisit untuk POST
-            ojssid_before = next((c.value for c in self._session.cookies if c.name == "OJSSID"), None)
-            if ojssid_before:
-                self._session.headers.update({"Cookie": f"OJSSID={ojssid_before}"})
-            
-            print(f"[DEBUG] OJSSID sebelum POST: {ojssid_before}")
-            print(f"[DEBUG] CSRF token: {self._csrf_token}")
-
             r = self._session.post(
                 f"{base_url}login/signIn",
                 data={
                     "username":  self.username,
                     "password":  self.password,
                     "csrfToken": self._csrf_token,
+                    "source":    "",
                 },
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
                 verify=False,
@@ -189,39 +180,33 @@ class SessionManager:
                 allow_redirects=False
             )
 
-            print(f"[DEBUG] POST status: {r.status_code}, Location: {r.headers.get('Location', '-')}")
-            print(f"[DEBUG] Set-Cookie dari POST: {r.headers.get('Set-Cookie', '-')}")
-
             location = r.headers.get("Location", "")
             if r.status_code != 302 or "login" in location:
                 print(f"[!] Login gagal — Location: {location}")
                 return False
 
-            # ✅ Ambil OJSSID baru dari response POST
-            ojssid_new = None
-            for h in r.headers.get("Set-Cookie", "").split(";"):
-                if "OJSSID=" in h:
-                    ojssid_new = h.strip().split("=")[1]
-                    break
-
-            if not ojssid_new:
-                # fallback dari jar
-                ojssid_new = next((c.value for c in self._session.cookies if c.name == "OJSSID"), None)
-
+            # Ambil OJSSID dari jar
+            ojssid_new = self._session.cookies.get("OJSSID")
             if not ojssid_new:
                 print("[!] OJSSID tidak ditemukan setelah login")
                 return False
 
-            # ✅ Update header Cookie ke OJSSID baru
-            self._session.headers.update({"Cookie": f"OJSSID={ojssid_new}"})
+            # Fix: clear jar dan set ulang tanpa domain restriction
+            self._session.cookies.clear()
+            jar = requests.cookies.RequestsCookieJar()
+            jar.set("OJSSID", ojssid_new)
+            self._session.cookies = jar
+            self._session.headers.pop("Cookie", None)
             self._ojssid = ojssid_new
 
-            # ✅ Follow redirect untuk establish session
-            r_redirect = self._session.get(urljoin(self.domain, location), verify=False, timeout=10)
-            print(f"[DEBUG] Redirect final URL: {r_redirect.url}")
-            print(f"[DEBUG] Redirect pkp_login: {'pkp_page_login' in r_redirect.text}")
+            # Verify session valid
+            r_check = self._session.get(
+                f"{base_url}submissions",
+                verify=False,
+                timeout=10
+            )
 
-            if "pkp_page_login" in r_redirect.text:
+            if "pkp_page_login" in r_check.text or "login" in r_check.url:
                 print("[!] Session tidak valid setelah redirect")
                 return False
 
@@ -231,7 +216,7 @@ class SessionManager:
         except Exception as e:
             print(f"[SessionManager] Error during login: {e}")
             return False
-        
+            
     def _save_to_file(self):
         """Simpan cookie + expiry ke file (opsional)."""
         data = {

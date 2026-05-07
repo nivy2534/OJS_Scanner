@@ -1,0 +1,16 @@
+rules:
+  - id: cve-2024-25434-publicname-xss
+    mode: taint
+
+    pattern-sources:
+      - pattern: $request->getUserVar("publicName")
+      - pattern: $form->getData("publicName")
+
+
+    pattern-sinks:
+      - pattern: $templateMgr->assign(...)
+
+    message: Stored XSS risk via publicName parameter (CVE-2024-25434)
+    severity: ERROR
+    languages:
+      - php

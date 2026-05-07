@@ -12,6 +12,9 @@ if __name__ == "__main__":
 
     crawler = Crawlers(domain, journal, username=username, password=password)
     urls = crawler.crawl()
+    print(f"[DEBUG] Crawled {len(urls)} URLs")
+    for u in urls[:5]:
+        print(f"  [URL] {u}")
 
     os.makedirs("../../results", exist_ok=True)
     with open("../../results/urls.txt", "w") as f:

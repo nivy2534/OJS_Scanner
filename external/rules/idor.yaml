@@ -1,31 +1,28 @@
-id: idor-numeric
-name: IDOR Numeric Parameter
+id: idor-ojs
+name: IDOR — OJS Authenticated Endpoints
 severity: high
-type: fuzz
+type: idor
 
-requests:
-  - method: GET
-    targets: [query_params]
-    fuzzing:
-      - mode: replace
-        params_pattern: "id|user|uid|account|submission|article"  # hanya param ini
-        payloads:
-          - "1"
-          - "2"
-          - "3"
-          - "0"
-          - "-1"
-          - "9999"
+tests:
+  - unauthenticated
+  - sequential
 
-matchers:
-  - type: status
-    status: [200]
+protected_patterns:
+  - "/management/"
+  - "/submissions"
+  - "/manageIssues"
+  - "/stats/"
+  - "/workflow/"
+  - "/submission/wizard"
+  - "/api/v1/users"
+  - "/api/v1/_submissions"
+  - "/user/profile"
 
-  - type: word
-    part: body
-    condition: or
-    words:
-      - "email"
-      - "username"
-      - "profile"
-      - "submission"
+sensitive_words:
+  - "email"
+  - "username"
+  - "submission"
+  - "author"
+  - "reviewer"
+  - "affiliation"
+  - "token"

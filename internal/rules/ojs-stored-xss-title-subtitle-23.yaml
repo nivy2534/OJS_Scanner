@@ -1,0 +1,28 @@
+rules:
+  - id: cve-2024-24511-title-xss
+    mode: taint
+
+    pattern-sources:
+      - pattern: $request->getUserVar("title")
+      - pattern: $form->getData("title")
+      - pattern: $publication->getLocalizedTitle()
+      - pattern: $request->getUserVar("subtitle")
+
+      - pattern: $this->getLocalizedData('title')
+      - pattern: $this->getLocalizedData('subtitle')
+      - pattern: $OBJ->getLocalizedData("title", ...)
+      - pattern: $OBJ->getLocalizedData("subtitle", ...)
+      - pattern: $OBJ->getData("title")
+      - pattern: $OBJ->getData("subtitle")
+      - pattern: $OBJ->getLocalizedTitle(...)
+      - pattern: $OBJ->getLocalizedSubTitle(...)
+      
+    pattern-sinks:
+      - pattern: $templateMgr->assign(...)
+      - pattern: print(...)
+      - pattern: printf(...)
+
+    message: Stored XSS risk via title field
+    severity: ERROR
+    languages:
+      - php

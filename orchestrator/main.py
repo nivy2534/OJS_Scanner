@@ -10,7 +10,7 @@ AVAILABLE_SCANNERS = ["crawler", "internal", "external_custom", "nuclei", "gobus
 
 def load_config():
     config_path = os.path.join(os.path.dirname(__file__), "config.json")
-    with open(config_path) as f:
+    with open(config_path, encoding='utf-8') as f:
         return json.load(f)
 
 def parse_args():

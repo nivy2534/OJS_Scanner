@@ -1,0 +1,38 @@
+rules:
+  # Rule 1: Tracks taint from input to storage
+  - id: cve-2024-25436-source-to-storage
+    mode: taint
+    message: >
+      [CVE-2024-25436] Unsanitized 'subject' input flows into a Note/Query
+      object. If this value is later rendered without escaping, Stored XSS is possible.
+    severity: WARNING
+    languages: [php]
+    pattern-sources:
+      - pattern-either:
+          - pattern: $this->getData('subject')
+          - pattern: $request->getUserVar('subject')
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: htmlspecialchars(...)
+          - pattern: strip_tags(...)
+          - pattern: PKPString::stripUnsafeHtml(...)
+    pattern-sinks:
+      - pattern-either:
+          - pattern: $headNote->setTitle($VAL)
+          - pattern: $query->setSubject($VAL)
+
+  # Rule 2: Tracks the ACTUAL rendering sink
+  - id: cve-2024-25436-unescaped-render-sink
+    mode: taint
+    message: >
+      [CVE-2024-25436/25438] CRITICAL: Unescaped Note title used as AjaxModal
+      title parameter. This is the confirmed XSS sink in QueryTitleGridColumn.inc.php.
+      Contrast with the adjacent htmlspecialchars() call on the grid label.
+    severity: ERROR
+    languages: [php]
+    pattern-sources:
+      - pattern: $headNote->getTitle()
+    pattern-sanitizers:
+      - pattern: htmlspecialchars(...)
+    pattern-sinks:
+      - pattern: new AjaxModal($URL, $headNote->getTitle(), ...)

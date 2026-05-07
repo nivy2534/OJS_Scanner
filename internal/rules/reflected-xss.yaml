@@ -1,0 +1,28 @@
+rules:
+  - id: reflected-xss-msg-php
+    mode: taint
+
+    pattern-sources:
+      - pattern: $_GET["msg"]
+      - pattern: $_REQUEST["msg"]
+
+    pattern-sinks:
+      - pattern: print(...)
+      - pattern: printf(...)
+      - pattern: $templateMgr->assign(...)
+
+    pattern-sanitizers:
+      - pattern: htmlspecialchars(...)
+      - pattern: htmlentities(...)
+
+    message: |
+      Possible Reflected XSS via 'msg' parameter.
+      User input is rendered without proper sanitization.
+
+    severity: ERROR
+
+    languages:
+      - php
+
+    options:
+      taint_unify_mvars: true

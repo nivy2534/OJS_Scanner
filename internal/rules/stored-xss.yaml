@@ -1,0 +1,29 @@
+rules:
+  - id: ojs-cve-2024-25434-contributor-xss
+    mode: taint
+
+    pattern-sources:
+      - pattern-either:
+          - pattern: $request->getUserVar("givenName")
+          - pattern: $request->getUserVar("familyName")
+          - pattern: $_POST["givenName"]
+          - pattern: $_POST["familyName"]
+
+    pattern-sinks:
+      - pattern: $templateMgr->assign(...)
+
+    pattern-sanitizers:
+      - pattern: htmlspecialchars(...)
+      - pattern: htmlentities(...)
+      - pattern: strip_tags(...)
+
+    message: |
+      Stored XSS in Contributor public name (CVE-2024-25434).
+      Unsanitized author name is rendered in template.
+
+    severity: ERROR
+    languages:
+      - php
+
+    options:
+      taint_unify_mvars: true
