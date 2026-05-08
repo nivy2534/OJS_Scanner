@@ -8,54 +8,12 @@ import warnings
 import requests
 import urllib3
 urllib3.disable_warnings()
+from ..utils.moduleLoader import load_module
 
 warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
 
 
 class Crawlers:
-
-    COMMON_ENDPOINTS = [
-        "dashboard", "submissions", "manageIssues",
-        "user/profile", "user/profile/roles",
-        "login", "register",
-        "management/settings/context",
-        "management/settings/website",
-        "management/settings/workflow",
-        "management/settings/distribution",
-        "management/settings/access",
-        "management/tools",
-        "stats/publications/publications",
-        "stats/editorial/editorial",
-        "stats/users/users",
-        "stats/reports",
-        "submission/wizard",
-        "index/admin",
-        "index/admin/contexts",
-        "index/admin/settings",
-        "index/admin/systemInfo",
-        "index/admin/expireSessions",
-        "index/admin/clearDataCache",
-        "index/admin/clearTemplateCache",
-        "api/v1/_submissions",
-        "api/v1/users",
-        "api/v1/issues",
-        "$$$call$$$/grid/issues/back-issue-grid",
-        "$$$call$$$/grid/issues/future-issue-grid",
-        "$$$call$$$/grid/navigation-menus/navigation-menu-items-grid",
-        "$$$call$$$/grid/navigation-menus/navigation-menus-grid",
-        "$$$call$$$/grid/plugins/plugin-gallery-grid",
-        "$$$call$$$/grid/settings/category/category-category-grid",
-        "$$$call$$$/grid/settings/genre/genre-grid",
-        "$$$call$$$/grid/settings/languages/manage-language-grid",
-        "$$$call$$$/grid/settings/library/library-file-admin-grid",
-        "$$$call$$$/grid/settings/plugins/settings-plugin-grid",
-        "$$$call$$$/grid/settings/review-forms/review-form-grid",
-        "$$$call$$$/grid/settings/roles/user-group-grid",
-        "$$$call$$$/grid/settings/sections/section-grid",
-        "$$$call$$$/grid/settings/user/user-grid",
-        "$$$call$$$/grid/admin/context/context-grid",
-    ]
-
     SKIP_URLS = [
         "signOut", "logout", "sign-out", "log-out"
     ]
@@ -106,6 +64,13 @@ class Crawlers:
             "Connection": "keep-alive"
         })
         print(f"[*] Session initialized with cookies: {self.session.cookies.get_dict()}")
+
+        _cfg = load_module("ojs", "endpoints")
+        self._common_endpoints = [
+            ep["path"] for ep in _cfg.get("common_endpoints", [])
+        ]
+        self._trigger_pages_kw = _cfg.get("trigger_pages", [])
+        self._dynamic_patterns = _cfg.get("dynamic_patterns", {})
 
     def extract_menu_urls(self, html):
         """
@@ -212,64 +177,69 @@ class Crawlers:
         return results
 
     def enrich_endpoints(self):
-        return {self.base + ep for ep in self.COMMON_ENDPOINTS}
+        return {self.base + ep for ep in self._common_endpoints}
 
     def discover_dynamic_urls(self, session):
         """Ekstrak URL dinamis dari API responses."""
         urls = set()
-        
-        # 1. Ambil submission IDs → generate wizard URLs
+        dp = self._dynamic_patterns
+
+        sub_cfg = dp.get("submission_wizard", {})
+        pub_cfg = dp.get("publication", {})
+        wf_cfg  = dp.get("workflow", {})
         try:
-            r = session.get(f"{self.base}api/v1/_submissions?count=50&offset=0", 
-                        verify=False, timeout=10)
+            r = session.get(f"{self.base}api/v1/_submissions?count=50&offset=0",
+                            verify=False, timeout=10)
             if r.status_code == 200:
-                data = r.json()
-                items = data.get("items", [])
+                items = r.json().get("items", [])
                 for item in items:
-                    sid = item.get("id")
+                    sid = item.get(sub_cfg.get("id_field", "id"))
                     if sid:
-                        # Wizard steps 1-5
-                        for step in range(1, 6):
-                            urls.add(f"{self.base}submission/wizard/{step}?submissionId={sid}")
-                        # Workflow
-                        urls.add(f"{self.base}workflow/access/{sid}")
-                        # Publication
-                        pub_id = item.get("currentPublicationId")
+                        for step in sub_cfg.get("steps", range(1, 6)):
+                            tmpl = sub_cfg.get("template", "submission/wizard/{step}?submissionId={id}")
+                            urls.add(self.base + tmpl.format(step=step, id=sid))
+                        wf_tmpl = wf_cfg.get("template", "workflow/access/{id}")
+                        urls.add(self.base + wf_tmpl.format(id=sid))
+                        pub_id = item.get(pub_cfg.get("secondary_field", "currentPublicationId"))
                         if pub_id:
-                            urls.add(f"{self.base}api/v1/submissions/{sid}/publications/{pub_id}")
+                            pub_tmpl = pub_cfg.get("template", "api/v1/submissions/{sid}/publications/{pid}")
+                            urls.add(self.base + pub_tmpl.format(sid=sid, pid=pub_id))
                 print(f"[*] Found {len(items)} submissions → {len(urls)} dynamic URLs")
         except Exception as e:
             print(f"[!] Failed to get submissions: {e}")
 
         # 2. Ambil issue IDs
+        issue_view_cfg = dp.get("issue_view", {})
+        issue_api_cfg  = dp.get("issue_api", {})
         try:
             r = session.get(f"{self.base}api/v1/issues?count=50&offset=0",
-                        verify=False, timeout=10)
+                            verify=False, timeout=10)
             if r.status_code == 200:
-                data = r.json()
-                for item in data.get("items", []):
-                    iid = item.get("id")
+                items = r.json().get("items", [])
+                for item in items:
+                    iid = item.get(issue_view_cfg.get("id_field", "id"))
                     if iid:
-                        urls.add(f"{self.base}issue/view/{iid}")
-                        urls.add(f"{self.base}api/v1/issues/{iid}")
-                print(f"[*] Found {len(data.get('items', []))} issues")
+                        urls.add(self.base + issue_view_cfg.get("template", "issue/view/{id}").format(id=iid))
+                        urls.add(self.base + issue_api_cfg.get("template", "api/v1/issues/{id}").format(id=iid))
+                print(f"[*] Found {len(items)} issues")
         except Exception as e:
             print(f"[!] Failed to get issues: {e}")
 
         # 3. Ambil user IDs
+        user_cfg = dp.get("user_api", {})
         try:
             r = session.get(f"{self.base}api/v1/users?count=50&offset=0",
-                        verify=False, timeout=10)
+                            verify=False, timeout=10)
             if r.status_code == 200:
-                data = r.json()
-                for item in data.get("items", []):
-                    uid = item.get("id")
+                items = r.json().get("items", [])
+                for item in items:
+                    uid = item.get(user_cfg.get("id_field", "id"))
                     if uid:
-                        urls.add(f"{self.base}api/v1/users/{uid}")
-                print(f"[*] Found {len(data.get('items', []))} users")
+                        urls.add(self.base + user_cfg.get("template", "api/v1/users/{id}").format(id=uid))
+                print(f"[*] Found {len(items)} users")
         except Exception as e:
             print(f"[!] Failed to get users: {e}")
-
+ 
         return urls
 
     def probe_enriched_endpoints(self):

@@ -7,6 +7,7 @@ from .payload_engine import apply_payload_url, get_fuzz_params
 from .matcher import match_response
 from .rule_loader import load_all_rules
 from .modules.finger_print import FingerprintScanner
+from ..utils.moduleLoader import load_module
 
 urllib3.disable_warnings()
 
@@ -16,9 +17,6 @@ class Scanner:
         self.sm = session_manager
         self.session = session_manager.session
         self.session.verify = False
-
-        #if self.session.cookies:
-        #    self.session.headers.update({"Cookie": "; ".join(f"{c.name}={c.value}" for c in self.session.cookies)})
 
         self.session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -30,16 +28,22 @@ class Scanner:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         })
 
+        # Load konfigurasi OJS dari YAML 
+        _ajax_cfg = load_module("ojs", "ajax_patterns")
+        self._ajax_form_patterns = [
+            e["pattern"] for e in _ajax_cfg.get("ajax_form_patterns", [])
+        ]
+        self._ajax_form_patterns_full = _ajax_cfg.get("ajax_form_patterns", [])
+        self._grid_id_map   = _ajax_cfg.get("grid_id_map", {})
+        self._grid_actions  = _ajax_cfg.get("grid_actions", {})
+        self._verify_paths  = _ajax_cfg.get("verify_paths", {})
+        self._trigger_pages = _ajax_cfg.get("trigger_pages_for_form_discovery", [])
+
     def _request(self, method, url, session=None, **kwargs):
         try:
-
-            if session is not None:
-                s = session
-            elif self.sm is not None:
-                s = self.sm.session
-            else:
-                s = self.session
-
+            s = session if session is not None else (
+                self.sm.session if self.sm is not None else self.session
+            )
             start = time.time()
             r = s.request(method, url, timeout=10, **kwargs)
             elapsed = time.time() - start
@@ -56,13 +60,13 @@ class Scanner:
         except Exception as e:
             print(f"[!] Request error {url}: {e}")
             return None, 0
-        
+
     def _safe_text(self, r: requests.Response) -> str:
         try:
             return r.content.decode('utf-8', errors='replace')
         except Exception:
             return r.content.decode('latin-1', errors='replace')
-        
+
     def _is_auth_response(self, r: requests.Response) -> bool:
         if r is None:
             return False
@@ -73,8 +77,28 @@ class Scanner:
             return False
         return True
 
+    def _get_verify_urls(self, base_url: str, action_url: str) -> list[str]:
+        """
+        Auto-detect category dari action_url lalu return verify URLs.
+        Menggantikan hardcoded verify_urls di scan_form_xss.
+        """
+        for category, paths in self._verify_paths.items():
+            if category == "default":
+                continue
+            if category in action_url.lower():
+                return [base_url.rstrip("/") + "/" + p.lstrip("/") for p in paths]
+        # fallback ke default
+        default = self._verify_paths.get("default", [])
+        return [base_url.rstrip("/") + "/" + p.lstrip("/") for p in default]
+
+    def _get_base_url(self, url: str) -> str:
+        """Ambil base URL (scheme://host/journal) dari URL apapun."""
+        parsed = urlparse(url)
+        parts = parsed.path.strip("/").split("/")
+        journal = parts[0] if parts else ""
+        return f"{parsed.scheme}://{parsed.netloc}/{journal}"
+
     def scan_fuzz(self, endpoints, rule):
-        """Fuzz query params atau body."""
         findings = []
 
         for endpoint in endpoints:
@@ -123,7 +147,6 @@ class Scanner:
         return findings
 
     def scan_probe(self, base_url, journal, rule):
-        """Hit path langsung tanpa fuzzing (untuk broken auth dll)."""
         findings = []
 
         for req in rule["requests"]:
@@ -155,9 +178,8 @@ class Scanner:
                     print(f"[FOUND] [{rule['severity'].upper()}] {rule['name']} → {url}")
 
         return findings
-    
+
     def _extract_ids(self, endpoints: list) -> dict:
-        """Extract known IDs dari URL list hasil crawler."""
         ids = {"submissions": set(), "issues": set(), "users": set()}
         for url in endpoints:
             patterns = {
@@ -172,26 +194,17 @@ class Scanner:
                         ids[resource].add(int(m.group(1)))
         return {k: list(v) for k, v in ids.items()}
 
-    
     def scan_idor(self, endpoints, base_url, journal, rule):
-        """
-        IDOR scan — 3 jenis test:
-        1. Unauthenticated access ke endpoint protected
-        2. Sequential ID enumeration dari known_ids
-        3. Cross-session (kalau ada second_session di rule)
-        """
         findings = []
         known_ids = self._extract_ids(endpoints)
         tests = rule.get("tests", ["unauthenticated", "sequential"])
 
-        # ── Test 1: Unauthenticated access ──────────────────────────────
         if "unauthenticated" in tests:
             print(f"  [IDOR] Test unauthenticated access...")
             protected_patterns = rule.get("protected_patterns", [
                 "/management/", "/submissions", "/manageIssues",
                 "/stats/", "/workflow/", "/submission/wizard",
-                "/api/v1/users", "/api/v1/_submissions", "/user/pr"
-                "file",
+                "/api/v1/users", "/api/v1/_submissions", "/user/profile",
             ])
 
             for url in endpoints:
@@ -207,11 +220,10 @@ class Scanner:
                     try:
                         json_resp = r_anon.json()
                         if json_resp.get("status") == False:
-                            continue  # Server menolak, bukan vulnerability
+                            continue
                     except:
                         pass
-                    
-                    # ✅ Filter response terlalu kecil (< 200 bytes kemungkinan error)
+
                     if len(self._safe_text(r_anon)) < 200:
                         continue
 
@@ -229,7 +241,6 @@ class Scanner:
 
                 time.sleep(0.1)
 
-        # ── Test 2: Sequential ID enumeration ───────────────────────────
         if "sequential" in tests and known_ids:
             print(f"  [IDOR] Test sequential ID enumeration...")
 
@@ -257,13 +268,12 @@ class Scanner:
                     continue
 
                 max_id = max(ids)
-                # Test range + edge cases
                 test_ids = list(range(1, max_id + 5)) + [0, -1, 99999]
 
                 for tmpl in templates.get(resource, []):
                     for test_id in test_ids:
                         if test_id in ids and test_id > 0:
-                            continue  # skip ID yang memang diketahui ada
+                            continue
 
                         url = tmpl.replace("{id}", str(test_id))
                         r, elapsed = self._request("GET", url)
@@ -294,7 +304,7 @@ class Scanner:
                         time.sleep(0.1)
 
         return findings
-    
+
     def get_version(self, base_url):
         print("[*] Running fingerprinting module...")
         fp = FingerprintScanner(base_url)
@@ -303,19 +313,11 @@ class Scanner:
         print(f"  [Fingerprint] Server version: {server_version}")
         print(f"  [Fingerprint] OJS version: {ojs_version}")
 
+    # Form XSS
     def _discover_ajax_forms(self, endpoints: list, patterns=None) -> list:
-        """
-        Cari AJAX endpoint yang memuat form dari:
-        1. href/action di HTML semua endpoint yang sudah di-crawl
-        2. Pattern fallback: URL yang mengandung kata kunci add/edit/create
-        
-        Return: list of dict {loader_url, action_url_hint}
-        """
+        # Pakai patterns dari YAML kalau tidak di-override
         if patterns is None:
-            patterns = [
-                r'add-issue', r'edit-issue', r'add-section',
-                r'add-category', r'edit-user', r'create-submission',
-            ]
+            patterns = self._ajax_form_patterns
 
         found = []
         seen_loaders = set()
@@ -327,35 +329,35 @@ class Scanner:
                     if url not in seen_loaders:
                         seen_loaders.add(url)
                         found.append({"loader_url": url})
+
                     if 'grid' in url.lower():
                         base = url.split('?')[0].rstrip('/')
                         grid_name = base.split('/')[-1]
-                        grid_id_map = {
-                            'future-issue-grid': 'grid-issues-futureissuegrid',
-                            'back-issue-grid': 'grid-issues-backissuegrid',
-                        }
-                        grid_id = grid_id_map.get(grid_name)
-                        for action in ['add-issue', 'edit-issue', 'update-issue']:
-                            if grid_id:
-                                derived = f"{base}/{action}?gridId={grid_id}"
-                            else: 
-                                derived = base + '/' + action
+
+                        # Pakai grid_id_map dari YAML
+                        grid_id = self._grid_id_map.get(grid_name)
+
+                        # Pakai grid_actions dari YAML
+                        actions = self._grid_actions.get(grid_name, [])
+                        for action in actions:
+                            derived = (
+                                f"{base}/{action}?gridId={grid_id}"
+                                if grid_id else f"{base}/{action}"
+                            )
                             if derived not in seen_loaders:
                                 seen_loaders.add(derived)
                                 found.append({"loader_url": derived, "derived_from": url})
 
-        # Pass 2: fetch setiap halaman dan cari href yang match pattern
-        # (misalnya tombol "Buat Terbitan" ada di /manageIssues)
-        trigger_pages = [u for u in endpoints if any(
-            kw in u for kw in ['/manageIssues', '/management/', '/dashboard',
-                            '/issues/', '/submissions']
-        )]
+        # Pass 2: fetch trigger pages dan cari href yang match pattern
+        trigger_pages = [
+            u for u in endpoints
+            if any(kw in u for kw in self._trigger_pages)
+        ]
 
-        for page_url in trigger_pages[:10]:  # batasi agar tidak terlalu lambat
+        for page_url in trigger_pages[:10]:
             r, _ = self._request("GET", page_url)
             if r is None:
                 continue
-            # Cari semua href yang mengandung keyword form
             body = self._safe_text(r)
             grid_ids = re.findall(r'["\']([a-z]+-[a-z]+-[a-z]+grid)["\']', body)
             print(f"  [FormXSS] Found gridIds: {grid_ids}")
@@ -363,7 +365,6 @@ class Scanner:
             for href in hrefs:
                 for pat in patterns:
                     if re.search(pat, href, re.IGNORECASE):
-                        # Resolve relatif URL
                         if href.startswith('http'):
                             loader = href
                         else:
@@ -375,16 +376,7 @@ class Scanner:
 
         return found
 
-
     def _parse_ajax_form(self, loader_url: str) -> dict | None:
-        """
-        GET loader_url, parse HTML-nya untuk ambil:
-        - action URL (dari <form action="...">)
-        - semua input fields (name, value, type)
-        - csrfToken
-        
-        Return None kalau bukan form atau gagal fetch.
-        """
         parsed = urlparse(loader_url)
         base = f"{parsed.scheme}://{parsed.netloc}"
         journal = parsed.path.split('/')[1]
@@ -392,9 +384,7 @@ class Scanner:
 
         req = requests.Request("GET", loader_url)
         prepared = self.session.prepare_request(req)
-        print(f"  [FormXSS] Cookie header actual: {prepared.headers.get('Cookie', 'TIDAK ADA')}")
-        
-        parsed_url = urlparse(loader_url)
+        #print(f"  [FormXSS] Cookie header actual: {prepared.headers.get('Cookie', 'TIDAK ADA')}")
 
         r, _ = self._request(
             "GET",
@@ -405,35 +395,30 @@ class Scanner:
             }
         )
 
-        print(f"  [FormXSS] cookie dikirim: {self.session.cookies.get_dict()}")
-        print(f"  [FormXSS] header cookie: {self.session.headers.get('Cookie', 'TIDAK ADA')}")
+        #print(f"  [FormXSS] cookie dikirim: {self.session.cookies.get_dict()}")
+        #print(f"  [FormXSS] header cookie: {self.session.headers.get('Cookie', 'TIDAK ADA')}")
 
         if r is None or r.status_code != 200:
             print(f"  [FormXSS] status={r.status_code if r else 'None'} url={loader_url}")
             return None
 
         body = self._safe_text(r)
-        print(f"  [FormXSS] status={r.status_code} len={len(body)} preview={body[:200]!r}") 
-        
+        print(f"  [FormXSS] status={r.status_code} len={len(body)} preview={body[:200]!r}")
+
         try:
             import json
             json_resp = json.loads(body)
             if not json_resp.get("status", False):
-                return None  # server tolak (bukan auth atau akses ditolak)
-            # Extract HTML dari field content
+                return None
             html = json_resp.get("content", "")
-            #print(f"    [DEBUG] AJAX response content length: {len(html)}")
-            #print(f"    [DEBUG] AJAX response content preview: {html[:600]!r}")
             if not html:
                 return None
         except (json.JSONDecodeError, ValueError):
-            # Bukan JSON, langsung parse sebagai HTML biasa
             html = body
-        
+
         try:
             from bs4 import BeautifulSoup
         except ImportError:
-            # Fallback: regex parsing tanpa beautifulsoup
             return self._parse_ajax_form_regex(html, loader_url)
 
         soup = BeautifulSoup(html, "html.parser")
@@ -462,41 +447,17 @@ class Scanner:
             "csrf": fields.get("csrfToken", ""),
         }
 
-
     def _parse_ajax_form_regex(self, html: str, base_url: str) -> dict | None:
-        """Fallback regex parser kalau BeautifulSoup tidak tersedia."""
-        form_match = re.search(
-            r'<form\b[^>]*',
-            html, re.IGNORECASE
-        )
+        form_match = re.search(r'<form\b[^>]*', html, re.IGNORECASE)
         if not form_match:
             return None
-        
+
         form_tag = form_match.group(0)
-        # Extract action
-        action_match = re.search(
-            r'action=["\']([^"\']+)["\']',
-            form_tag,
-            re.IGNORECASE
-        )
+        action_match = re.search(r'action=["\']([^"\']+)["\']', form_tag, re.IGNORECASE)
+        method_match = re.search(r'method=["\']([^"\']+)["\']', form_tag, re.IGNORECASE)
 
-        # Extract method
-        method_match = re.search(
-            r'method=["\']([^"\']+)["\']',
-            form_tag,
-            re.IGNORECASE
-        )
-
-        action = (
-            action_match.group(1)
-            if action_match else base_url
-        )
-
-        method = (
-            method_match.group(1).upper()
-            if method_match else "POST"
-        )
-        #print(f"  [DEBUG] Parsed form action: {action}, method: {method}")
+        action = action_match.group(1) if action_match else base_url
+        method = method_match.group(1).upper() if method_match else "POST"
 
         fields = {}
         for m in re.finditer(
@@ -510,10 +471,7 @@ class Scanner:
                     continue
             fields[name] = val
 
-        # Ambil juga textarea
-        for m in re.finditer(
-            r'<textarea[^>]+name=["\']([^"\']+)["\']', html, re.IGNORECASE
-        ):
+        for m in re.finditer(r'<textarea[^>]+name=["\']([^"\']+)["\']', html, re.IGNORECASE):
             fields[m.group(1)] = ""
 
         return {
@@ -523,26 +481,14 @@ class Scanner:
             "csrf": fields.get("csrfToken", ""),
         }
 
-
     def scan_form_xss(self, endpoints: list, rule: dict) -> list:
-        """
-        XSS scan untuk form yang dimuat via AJAX.
-        
-        Alur:
-        1. Discover AJAX form loader URLs dari endpoint list
-        2. GET setiap loader → parse form fields + action + csrfToken
-        3. POST payload ke setiap text field satu per satu
-        4. Cek reflection di response body
-        """
         findings = []
-        ajax_patterns = rule.get("ajax_patterns", [
-            r'add-issue', r'edit-issue', r'add-section', r'add-article',
-            r'add-category', r'edit-user', r'create-submission',
-            r'update-issue', r'update-user',
-        ])
+
+        # Patterns: dari rule dulu, fallback ke YAML
+        ajax_patterns = rule.get("ajax_patterns") or self._ajax_form_patterns
+
         payloads = []
         fuzz_fields_pattern = None
-
         for req in rule.get("requests", []):
             for fuzz in req.get("fuzzing", []):
                 payloads.extend(fuzz.get("payloads", []))
@@ -555,7 +501,7 @@ class Scanner:
         ajax_forms = self._discover_ajax_forms(endpoints, patterns=ajax_patterns)
         print(f"  [FormXSS] Found {len(ajax_forms)} potential form loader(s)")
 
-        seen_findigns = set()
+        seen_findings = set()
 
         for form_info in ajax_forms:
             loader_url = form_info["loader_url"]
@@ -570,29 +516,23 @@ class Scanner:
             method = parsed["method"]
             base_fields = parsed["fields"].copy()
 
-            # Filter field yang mau di-fuzz
-            fuzzable = []
-            for fname in base_fields:
-                if fname == "csrfToken":
-                    continue
-                if fuzz_fields_pattern:
-                    if re.search(fuzz_fields_pattern, fname, re.IGNORECASE):
-                        fuzzable.append(fname)
-                else:
-                    # Fuzz semua text field kalau tidak ada pattern
-                    fuzzable.append(fname)
+            fuzzable = [
+                fname for fname in base_fields
+                if fname != "csrfToken" and (
+                    not fuzz_fields_pattern or
+                    re.search(fuzz_fields_pattern, fname, re.IGNORECASE)
+                )
+            ]
 
             print(f"  [FormXSS] Fuzzing {len(fuzzable)} field(s) on {action_url}")
 
             for field_name in fuzzable:
                 for payload in payloads:
-                    # POST: satu field diisi payload, sisanya nilai asli
                     post_data = base_fields.copy()
                     post_data[field_name] = payload
 
                     r, elapsed = self._request(
-                        method,
-                        action_url,
+                        method, action_url,
                         data=post_data,
                         allow_redirects=True,
                     )
@@ -604,25 +544,26 @@ class Scanner:
                     )
 
                     if matched:
-                        verify_urls = [
-                            f"{action_url.split('/$$$')[0]}/issue/archive",
-                            f"{action_url.split('/$$$')[0]}/issue/current",
-                            f"{action_url.split('/$$$')[0]}/manageIssues",
-                        ]
                         key = (field_name, payload[:30])
-                        if key in seen_findigns:
+                        if key in seen_findings:
                             continue
-                        seen_findigns.add(key)
+                        seen_findings.add(key)
+
+                        # Verify URLs dari YAML, bukan hardcoded
+                        base_url = self._get_base_url(action_url)
+                        verify_urls = self._get_verify_urls(base_url, action_url)
+
                         verified = False
                         for vurl in verify_urls:
                             vr, _ = self._request("GET", vurl)
                             if vr and payload in self._safe_text(vr):
                                 verified = True
                                 break
+
                         finding = {
                             "rule_id": rule["id"],
                             "rule_name": rule["name"],
-                            "severity": rule["severity"] if verified else "medium",  # turunkan kalau belum verified
+                            "severity": rule["severity"] if verified else "medium",
                             "url": action_url,
                             "loader_url": loader_url,
                             "param": field_name,
@@ -630,7 +571,7 @@ class Scanner:
                             "status": r.status_code,
                             "match": result,
                             "verified": verified,
-                            "test_type": "stored-xss" if verified else "potential-stored-xss",  # satu saja
+                            "test_type": "stored-xss" if verified else "potential-stored-xss",
                         }
                         findings.append(finding)
                         print(
@@ -643,7 +584,6 @@ class Scanner:
         return findings
 
     def run(self, endpoints, base_url, journal, rule_ids=None):
-        """Entry point utama — load rules dan jalankan semua scan."""
         all_findings = []
         rules = load_all_rules(rule_ids)
 
@@ -654,19 +594,17 @@ class Scanner:
         for rule in rules:
             rtype = rule.get("type", "fuzz")
             print(f"[*] Running rule: {rule['id']} ({rtype})")
+
             if rtype == "form_xss":
                 if self.sm is not None:
                     print(f"  [FormXSS] Re-authenticating...")
                     self.sm.force_refresh()
                 all_findings.extend(self.scan_form_xss(endpoints, rule))
-
-            if rtype == "fuzz":
+            elif rtype == "fuzz":
                 all_findings.extend(self.scan_fuzz(endpoints, rule))
             elif rtype == "probe":
                 all_findings.extend(self.scan_probe(base_url, journal, rule))
             elif rtype == "idor":
                 all_findings.extend(self.scan_idor(endpoints, base_url, journal, rule))
-            elif rtype == "form_xss":
-                all_findings.extend(self.scan_form_xss(endpoints, rule))
 
         return all_findings

@@ -1,0 +1,164 @@
+meta:
+  name: OJS AJAX Patterns
+  description: >
+    Definisi pattern untuk AJAX form discovery, grid ID mapping,
+    dan verify URL — dipakai oleh scanner FormXSS.
+
+# ─────────────────────────────────────────
+# Pattern regex untuk discover AJAX form loader
+# Dicocokkan ke URL endpoint yang sudah di-crawl
+# ─────────────────────────────────────────
+ajax_form_patterns:
+  # Issue management
+  - pattern: "add-issue"
+    category: issue
+  - pattern: "edit-issue"
+    category: issue
+  - pattern: "update-issue"
+    category: issue
+
+  # Section & category
+  - pattern: "add-section"
+    category: section
+  - pattern: "edit-section"
+    category: section
+  - pattern: "add-category"
+    category: category
+  - pattern: "edit-category"
+    category: category
+
+  # Article / submission
+  - pattern: "add-article"
+    category: submission
+  - pattern: "create-submission"
+    category: submission
+
+  # User management
+  - pattern: "edit-user"
+    category: user
+  - pattern: "update-user"
+    category: user
+  - pattern: "add-user"
+    category: user
+
+  # Navigation menu
+  - pattern: "add-item"
+    category: navigation
+  - pattern: "edit-item"
+    category: navigation
+
+  # Review form
+  - pattern: "create-review-form"
+    category: review
+  - pattern: "edit-review-form"
+    category: review
+
+  # Genre
+  - pattern: "add-genre"
+    category: genre
+  - pattern: "edit-genre"
+    category: genre
+
+# ─────────────────────────────────────────
+# Mapping grid name (dari URL) → gridId HTML
+# Dipakai saat derive action URL dari grid endpoint
+# Format: {grid-name}: {html-grid-id}
+# ─────────────────────────────────────────
+grid_id_map:
+  future-issue-grid: "grid-issues-futureissuegrid"
+  back-issue-grid: "grid-issues-backissuegrid"
+  navigation-menus-grid: "grid-navigationmenus-navigationmenusgrid"
+  navigation-menu-items-grid: "grid-navigationmenus-navigationmenuitemsgrid"
+  plugin-gallery-grid: "grid-plugins-plugingallerygrid"
+  category-category-grid: "grid-settings-category-categorycategorygrid"
+  genre-grid: "grid-settings-genre-genregrid"
+  manage-language-grid: "grid-settings-languages-managelanguagegrid"
+  library-file-admin-grid: "grid-settings-library-libraryfileadmingrid"
+  settings-plugin-grid: "grid-settings-plugins-settingsplugingrid"
+  review-form-grid: "grid-settings-reviewforms-reviewformgrid"
+  user-group-grid: "grid-settings-roles-usergroupgrid"
+  section-grid: "grid-settings-sections-sectiongrid"
+  user-grid: "grid-settings-user-usergrid"
+  context-grid: "grid-admin-context-contextgrid"
+
+# ─────────────────────────────────────────
+# Action turunan per grid
+# Dipakai untuk derive action URL dari grid endpoint
+# Format: {grid-name}: [list of actions]
+# ─────────────────────────────────────────
+grid_actions:
+  future-issue-grid:
+    - "add-issue"
+    - "edit-issue"
+    - "update-issue"
+  back-issue-grid:
+    - "add-issue"
+    - "edit-issue"
+    - "update-issue"
+  user-grid:
+    - "edit-user"
+    - "add-user"
+  section-grid:
+    - "add-section"
+    - "edit-section"
+  category-category-grid:
+    - "add-category"
+    - "edit-category"
+  navigation-menus-grid:
+    - "add-item"
+    - "edit-item"
+  review-form-grid:
+    - "create-review-form"
+    - "edit-review-form"
+  genre-grid:
+    - "add-genre"
+    - "edit-genre"
+
+# ─────────────────────────────────────────
+# Path untuk verifikasi stored XSS
+# Setelah payload dikirim, cek apakah payload
+# muncul di salah satu halaman ini
+# ─────────────────────────────────────────
+verify_paths:
+  issue:
+    - "issue/archive"
+    - "issue/current"
+    - "manageIssues"
+  user:
+    - "management/settings/access"
+    - "$$$call$$$/grid/settings/user/user-grid"
+  section:
+    - "management/settings/workflow"
+    - "$$$call$$$/grid/settings/sections/section-grid"
+  category:
+    - "management/settings/workflow"
+    - "$$$call$$$/grid/settings/category/category-category-grid"
+  navigation:
+    - "management/settings/website"
+    - "$$$call$$$/grid/navigation-menus/navigation-menus-grid"
+  review:
+    - "management/settings/workflow"
+    - "$$$call$$$/grid/settings/review-forms/review-form-grid"
+  genre:
+    - "management/settings/workflow"
+    - "$$$call$$$/grid/settings/genre/genre-grid"
+  default:
+    - "issue/archive"
+    - "issue/current"
+    - "manageIssues"
+    - "dashboard"
+
+# ─────────────────────────────────────────
+# Halaman trigger untuk Pass 2 form discovery
+# (halaman yang di-fetch untuk cari href form action)
+# ─────────────────────────────────────────
+trigger_pages_for_form_discovery:
+  - "manageIssues"
+  - "management/settings/context"
+  - "management/settings/website"
+  - "management/settings/workflow"
+  - "management/settings/distribution"
+  - "management/settings/access"
+  - "dashboard"
+  - "submissions"
+  - "index/admin"

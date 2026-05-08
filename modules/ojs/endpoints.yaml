@@ -1,0 +1,312 @@
+meta:
+  name: OJS
+  label: Open Journal Systems
+  version: "3.x"
+  detect:
+    paths:
+      - "/about/aboutThisPublishingSystem"
+      - "/about/submissions"
+    keywords:
+      - "pkp_page_"
+      - "pkp.registry"
+      - "window.pkp"
+
+# ─────────────────────────────────────────
+# Endpoint statis yang di-probe saat crawl
+# Semua path relatif terhadap /{journal}/
+# ─────────────────────────────────────────
+common_endpoints:
+
+  # Dashboard & navigasi utama
+  - path: "dashboard"
+    type: page
+    auth_required: true
+
+  - path: "submissions"
+    type: page
+    auth_required: true
+
+  - path: "manageIssues"
+    type: page
+    auth_required: true
+
+  - path: "payments"
+    type: page
+    auth_required: true
+
+  - path: "search"
+    type: page
+    auth_required: false
+
+  - path: "search/index"
+    type: page
+    auth_required: false
+
+  # Profil user
+  - path: "user/profile"
+    type: page
+    auth_required: true
+
+  - path: "user/profile/roles"
+    type: page
+    auth_required: true
+
+  # Auth
+  - path: "login"
+    type: page
+    auth_required: false
+
+  - path: "register"
+    type: page
+    auth_required: false
+
+  # Management settings
+  - path: "management/settings/context"
+    type: page
+    auth_required: true
+
+  - path: "management/settings/website"
+    type: page
+    auth_required: true
+
+  - path: "management/settings/workflow"
+    type: page
+    auth_required: true
+
+  - path: "management/settings/distribution"
+    type: page
+    auth_required: true
+
+  - path: "management/settings/access"
+    type: page
+    auth_required: true
+
+  - path: "management/settings/announcements"
+    type: page
+    auth_required: true
+
+  - path: "management/tools"
+    type: page
+    auth_required: true
+
+  # Stats
+  - path: "stats/publications/publications"
+    type: page
+    auth_required: true
+
+  - path: "stats/editorial/editorial"
+    type: page
+    auth_required: true
+
+  - path: "stats/users/users"
+    type: page
+    auth_required: true
+
+  - path: "stats/reports"
+    type: page
+    auth_required: true
+
+  # Submission wizard (tanpa submissionId — buat form awal)
+  - path: "submission/wizard"
+    type: page
+    auth_required: true
+
+  # Admin
+  - path: "index/admin"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/contexts"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/settings"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/systemInfo"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/expireSessions"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/clearDataCache"
+    type: page
+    auth_required: true
+
+  - path: "index/admin/clearTemplateCache"
+    type: page
+    auth_required: true
+
+  # REST API
+  - path: "api/v1/_submissions"
+    type: rest_api
+    auth_required: true
+    params:
+      - name: searchPhrase
+        injectable: true
+      - name: count
+        injectable: false
+      - name: offset
+        injectable: false
+
+  - path: "api/v1/users"
+    type: rest_api
+    auth_required: true
+    params:
+      - name: searchPhrase
+        injectable: true
+      - name: count
+        injectable: false
+      - name: offset
+        injectable: false
+
+  - path: "api/v1/issues"
+    type: rest_api
+    auth_required: true
+    params:
+      - name: count
+        injectable: false
+      - name: offset
+        injectable: false
+
+  # AJAX Grid — $$$call$$$
+  - path: "$$$call$$$/grid/issues/back-issue-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/issues/future-issue-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/navigation-menus/navigation-menu-items-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/navigation-menus/navigation-menus-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/plugins/plugin-gallery-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/category/category-category-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/genre/genre-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/languages/manage-language-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/library/library-file-admin-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/plugins/settings-plugin-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/review-forms/review-form-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/roles/user-group-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/sections/section-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/settings/user/user-grid"
+    type: ajax_grid
+    auth_required: true
+
+  - path: "$$$call$$$/grid/admin/context/context-grid"
+    type: ajax_grid
+    auth_required: true
+
+  # Profile tabs
+  - path: "$$$call$$$/tab/user/profile-tab/identity"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/contact"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/roles"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/public-profile"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/api-profile"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/change-password"
+    type: ajax_tab
+    auth_required: true
+
+  - path: "$$$call$$$/tab/user/profile-tab/notification-settings"
+    type: ajax_tab
+    auth_required: true
+
+# ─────────────────────────────────────────
+# URL pattern untuk generate endpoint dinamis
+# ─────────────────────────────────────────
+dynamic_patterns:
+  submission_wizard:
+    template: "submission/wizard/{step}?submissionId={id}"
+    steps: [1, 2, 3, 4, 5]
+    id_source: "api/v1/_submissions"
+    id_field: "id"
+
+  workflow:
+    template: "workflow/access/{id}"
+    id_source: "api/v1/_submissions"
+    id_field: "id"
+
+  publication:
+    template: "api/v1/submissions/{sid}/publications/{pid}"
+    id_source: "api/v1/_submissions"
+    id_field: "id"
+    secondary_field: "currentPublicationId"
+
+  issue_view:
+    template: "issue/view/{id}"
+    id_source: "api/v1/issues"
+    id_field: "id"
+
+  issue_api:
+    template: "api/v1/issues/{id}"
+    id_source: "api/v1/issues"
+    id_field: "id"
+
+  user_api:
+    template: "api/v1/users/{id}"
+    id_source: "api/v1/users"
+    id_field: "id"
+
+# ─────────────────────────────────────────
+# Halaman yang dipakai sebagai trigger crawl
+# (untuk cari link/href yang muncul di HTML-nya)
+# ─────────────────────────────────────────
+trigger_pages:
+  - "manageIssues"
+  - "management/settings/context"
+  - "management/settings/website"
+  - "management/settings/workflow"
+  - "dashboard"
+  - "submissions"
+  - "index/admin"
