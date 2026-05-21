@@ -6,7 +6,7 @@ import argparse
 from .job_manager import JobManager
 from .aggregator import aggregate
 
-AVAILABLE_SCANNERS = ["crawler", "internal", "external_custom", "nuclei", "gobuster"]
+AVAILABLE_SCANNERS = ["crawler", "internal", "external_custom", "nuclei", "gobuster", "http_server"]
 
 def load_config():
     config_path = os.path.join(os.path.dirname(__file__), "config.json")
@@ -56,10 +56,14 @@ def build_scan_flags(requested_scan: list[str]) -> dict:
     """
     run_all = len(requested_scan) == 0
 
-    return{
+    flags = {
         scan: True if run_all else (scan in requested_scan)
         for scan in AVAILABLE_SCANNERS
     }
+
+    if any(flags[s] for s in AVAILABLE_SCANNERS if s!="http_server"):
+        flags["http_server"] = True
+    return flags
 
 async def main():
     args = parse_args()
@@ -82,7 +86,11 @@ async def main():
 
     manager = JobManager(config)
 
-    await manager.execute()
+    try:
+        await manager.execute()
+    except KeyboardInterrupt:
+        print("\n[*] Stopped.")
+        return
 
     findings = aggregate()
 

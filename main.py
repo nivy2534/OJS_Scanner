@@ -3,4 +3,7 @@ import asyncio
 
 
 if __name__ == "__main__":
-    asyncio.run(orchestrator_main())
+    try:
+        asyncio.run(orchestrator_main())
+    except KeyboardInterrupt:
+        print("\n[*] Stopped.")

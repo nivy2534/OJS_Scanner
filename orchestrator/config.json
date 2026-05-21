@@ -1,5 +1,5 @@
 {
-  "target": "http://localhost:8081/",
+  "target": "http://localhost:9081/",
   "journal": "coba",
   "auth": {
     "cookie": "session=abc123",
@@ -13,5 +13,5 @@
     "external_custom": true,
     "external_nuclei": true
   },
-  "url": "/home/nivy/ojs-source"
+  "ojs_root": "/home/nivy/ojs-source"
 }
