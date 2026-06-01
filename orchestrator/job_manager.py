@@ -1,11 +1,17 @@
 import os
 import asyncio
+import subprocess
+import shutil
+import json
 from .runner import run
+from datetime import datetime
 from internal.main import scan as run_semgrep
 from external.utils.session_manager import SessionManager
 from external.crawler.crawl import Crawlers
 from external.scanner.scanner import Scanner
 from server.http_server import HttpServer
+from reporter import load_all_findings, generate_report, notify_if_needed
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."  ))
@@ -19,7 +25,7 @@ class JobManager:
         self.password = config.get("auth", {}).get("password")
         self.dir = config.get("ojs_root")
         self.wordlist = config.get("wordlist")
-        self.sm = SessionManager(domain=self.target, journal=self.journal, username=self.username, password=self.password)
+        # self.sm = SessionManager(domain=self.target, journal=self.journal, username=self.username, password=self.password)
         self.server = HttpServer()
         self.server.set_scan_handler(self._handle_agent_scan)
 
@@ -58,39 +64,69 @@ class JobManager:
             print(f"[!] Internal scan error: {e}")
             return {"code": 1, "error": str(e), "findings": []}
 
+    def _copy_from_container(self, relative_path: str, staging_dir: str) -> tuple[bool, str]:
+        container = self.config.get("ojs_container", "pkp_app_ojs")
+
+        if relative_path == ".":
+            src_path  = "pkp_app_ojs:/var/www/html"
+            dest_name = "ojs_full"
+        else:
+            src_path  = f"pkp_app_ojs:/var/www/html/{relative_path.lstrip('/')}"
+            dest_name = os.path.basename(relative_path.rstrip("/"))
+
+        os.makedirs(staging_dir, exist_ok=True)
+        print(f"[*] Copying {src_path}...")
+
+        result = subprocess.run(
+            ["docker", "cp", src_path, os.path.join(staging_dir, dest_name)],
+            capture_output=True, text=True,
+        )
+
+        if result.returncode != 0:
+            print(f"[!] Copy gagal: {result.stderr}")
+            return False, ""
+
+        abs_path = os.path.join(staging_dir, dest_name)
+        print(f"[+] Copy selesai: {abs_path}")
+        return True, abs_path
 
     def _handle_agent_scan(self, payload: dict) -> dict:
-        """Dipanggil HttpServer saat plugin OJS POST /scan."""
         relative_path = payload.get("path", "")
         event         = payload.get("event", "manual")
 
-        ojs_root = self.config.get("ojs_root", "")
-        if not ojs_root:
-            return {"error": "ojs_root tidak dikonfigurasi", "findings": []}
-
-        abs_path = os.path.normpath(os.path.join(ojs_root, relative_path))
-
-        # Path traversal check
-
-        if relative_path == ".":
-            abs_path = os.path.abspath(ojs_root)
-            print(f"[*] Agent scan: root directory [{event}]")
-        else:
-            abs_path = os.path.normpath(os.path.join(ojs_root, relative_path))
-            if not abs_path.startswith(os.path.abspath(ojs_root)):
-                return {"error": "Invalid path", "findings": []}
-
-        if not os.path.exists(abs_path):
-            return {"error": "Path not found", "findings": []}
-
         print(f"[*] Agent scan: {relative_path} [{event}]")
 
+        # ── Buat scan dir ────────────────────────────────────────────────────────
+        ts         = datetime.now().strftime("%Y%m%d_%H%M%S")
+        scan_label = "full_scan" if relative_path == "." else \
+                    relative_path.replace("/", "_").strip("_")
+
+        scan_dir    = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", "..", "results", "scans",
+            f"scan_{ts}_{scan_label}"
+        ))
+        staging_dir = os.path.join(scan_dir, "_staging")
+        os.makedirs(scan_dir, exist_ok=True)
+
+        # ── Copy dari container ──────────────────────────────────────────────────
+        success, abs_path = self._copy_from_container(relative_path, staging_dir)
+        if not success:
+            return {"error": "Gagal copy dari container", "findings": []}
+
+        success, abs_path = self._copy_from_container(relative_path, staging_dir)
+        print(f"[*] Copy success={success} abs_path={abs_path}")
+        print(f"[*] Path exists={os.path.exists(abs_path) if abs_path else 'N/A'}")
+        # ── Semgrep scan ─────────────────────────────────────────────────────────
         try:
-            # Reuse scan() yang sama persis dengan run_internal()
             findings = run_semgrep(abs_path)
         except Exception as e:
+            print(f"[!] Semgrep error: {e}")
             return {"error": str(e), "findings": []}
+        finally:
+            shutil.rmtree(staging_dir, ignore_errors=True)
+            print(f"[*] Staging cleaned")
 
+        # ── Summary + save ───────────────────────────────────────────────────────
         by_severity: dict[str, int] = {}
         for f in findings:
             sev = f.get("severity", "unknown")
@@ -101,24 +137,34 @@ class JobManager:
             "summary":      {"total": len(findings), "by_severity": by_severity},
             "scanned_path": relative_path,
             "event":        event,
+            "ts":           ts,
         }
 
-        self._save_agent_findings(result)
-        print(f"[+] Agent scan done: {len(findings)} finding(s)")
-        return result
-    
-    def _save_agent_findings(self, result: dict):
-        import json
-        from datetime import datetime
- 
-        os.makedirs("../results", exist_ok=True)
-        ts       = datetime.now().strftime("%Y%m%d%H%M%S")
-        out_path = f"../results/agent_scan_{ts}.json"
- 
-        with open(out_path, "w", encoding="utf-8") as f:
+        findings_path = os.path.join(scan_dir, "findings.json")
+        with open(findings_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
- 
-        print(f"[+] Agent findings saved to {out_path}")
+
+        print(f"[+] Findings saved: {findings_path} ({len(findings)} finding(s))")
+
+        # ── Auto report ──────────────────────────────────────────────────────────
+        if findings:
+            try:
+                report_path = generate_report(
+                    findings   = findings,
+                    target     = self.target,
+                    scan_types = ["sast"],
+                    output_dir = scan_dir,
+                )
+                if report_path:
+                    print(f"[+] Report: {report_path}")
+                    result["report_path"] = report_path
+                    notify_if_needed(findings, report_path, self.target)
+            except Exception as e:
+                print(f"[!] Report error: {e}")
+        else:
+            print(f"[*] Clean scan — tidak ada findings")
+
+        return result
 
     async def run_external_custom(self, urls_file=None, urls=None):
         print("[*] Running custom external scanner...")
@@ -241,6 +287,9 @@ class JobManager:
                     import traceback
                     print(f"[!] {name} gagal: {result}")
                     traceback.print_exception(type(result), result, result.__traceback__) 
+            findings, scan_types = load_all_findings()
+            report_path = generate_report(findings, target=self.target, scan_types=scan_types)
+            notify_if_needed(findings, report_path, self.target)
         except Exception as e:
             print(f"[!] Error during scan execution: {e}")
             return

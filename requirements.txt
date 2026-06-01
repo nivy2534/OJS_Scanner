@@ -1,5 +1,5 @@
 requests
 beautifulsoup4
-playwright
 lxml
 urllib3
+pyyaml

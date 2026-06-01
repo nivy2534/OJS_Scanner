@@ -41,7 +41,7 @@ def run_semgrep(target, rules):
 def get_output_file():
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
     filename = f"semgrep_{timestamp}.json"
-    results_dir = os.path.join(os.path.dirname(__file__), "../../results")
+    results_dir = os.path.join(os.path.dirname(__file__), "../results")
     os.makedirs(results_dir, exist_ok=True)  
     return os.path.join(results_dir, filename)
 
