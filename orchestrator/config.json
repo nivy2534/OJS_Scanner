@@ -1,6 +1,6 @@
 {
-  "target": "http://localhost:9081/",
-  "journal": "coba",
+  "target": "http://localhost:8080/",
+  "journal": "g2",
   "auth": {
     "cookie": "session=abc123",
     "csrf_token": "def456",
@@ -13,5 +13,5 @@
     "external_custom": true,
     "external_nuclei": true
   },
-  "ojs_root": "/home/nivy/ojs-source"
+  "ojs_root": "/home/gein/OJS_Scanner"
 }
