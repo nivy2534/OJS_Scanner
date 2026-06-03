@@ -14,6 +14,7 @@ import socketserver
 import threading
 import json
 import logging
+from reporter.alert_buffer import get_alert_buffer
 
 log = logging.getLogger("http_server")
 
@@ -95,40 +96,49 @@ class AgentRequestHandler(http.server.BaseHTTPRequestHandler):
             self._send_json(503, {"error": "Scan handler not registered"})
 
     def _handle_collect(self):
-        """Terima data dari RequestCollector dan ResponseCollector."""
         if not self._is_authorized():
             self._send_json(401, {"error": "Unauthorized"})
             return
-
+    
         payload = self._read_body()
         if payload is None:
             self._send_json(400, {"error": "Invalid JSON"})
             return
-        
+    
         event_type = payload.get("type", "unknown")
         url        = payload.get("url", "")
+    
         if event_type == "content_injection_alert":
             threat_count = payload.get("threat_count", 0)
             threats      = payload.get("threats", [])
+    
+            # ── Simpan ke buffer, akan digabung saat semgrep selesai ────
+            if threats:
+                get_alert_buffer().add(payload)
+    
             print(f"\n[🚨 ALERT] Content injection terdeteksi!")
             print(f"  URL     : {url}")
             print(f"  Threats : {threat_count} finding(s)")
             for t in threats:
                 print(f"  [{t.get('severity','?').upper()}] {t.get('description','')}")
                 print(f"  Match   : {t.get('match','')[:100]}")
+            print(f"  Buffer  : {get_alert_buffer().count} alert(s) tersimpan")
+    
         elif event_type == "request":
             print(f"[Agent] request — {payload.get('url', '')}")
+    
         elif event_type == "response_render":
             print(f"[Agent] response_render — {url}")
+    
         elif event_type == "semgrep_findings":
             count = len(payload.get("findings", []))
             print(f"[Agent] semgrep_findings — {count} finding(s) dari {payload.get('path','')}")
+    
         else:
             print(f"[Agent] {event_type} — {url}")
+    
         self._send_json(200, {"status": "ok"})
-
-
-
+    
 class HttpServer:
     """
     Wrapper HTTP server yang jalan di background thread.

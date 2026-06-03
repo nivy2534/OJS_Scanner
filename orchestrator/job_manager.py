@@ -11,6 +11,7 @@ from external.crawler.crawl import Crawlers
 from external.scanner.scanner import Scanner
 from server.http_server import HttpServer
 from reporter import load_all_findings, generate_report, notify_if_needed
+from reporter.alert_buffer import get_alert_buffer
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -93,79 +94,99 @@ class JobManager:
     def _handle_agent_scan(self, payload: dict) -> dict:
         relative_path = payload.get("path", "")
         event         = payload.get("event", "manual")
-
+    
         print(f"[*] Agent scan: {relative_path} [{event}]")
-
+    
         # ── Buat scan dir ────────────────────────────────────────────────────────
         ts         = datetime.now().strftime("%Y%m%d_%H%M%S")
         scan_label = "full_scan" if relative_path == "." else \
                     relative_path.replace("/", "_").strip("_")
-
+    
         scan_dir    = os.path.abspath(os.path.join(
             os.path.dirname(__file__), "..", "..", "results", "scans",
             f"scan_{ts}_{scan_label}"
         ))
         staging_dir = os.path.join(scan_dir, "_staging")
         os.makedirs(scan_dir, exist_ok=True)
-
+    
         # ── Copy dari container ──────────────────────────────────────────────────
         success, abs_path = self._copy_from_container(relative_path, staging_dir)
         if not success:
             return {"error": "Gagal copy dari container", "findings": []}
-
-        success, abs_path = self._copy_from_container(relative_path, staging_dir)
-        print(f"[*] Copy success={success} abs_path={abs_path}")
-        print(f"[*] Path exists={os.path.exists(abs_path) if abs_path else 'N/A'}")
+    
         # ── Semgrep scan ─────────────────────────────────────────────────────────
         try:
-            findings = run_semgrep(abs_path)
+            sast_findings = run_semgrep(abs_path)
         except Exception as e:
             print(f"[!] Semgrep error: {e}")
             return {"error": str(e), "findings": []}
         finally:
             shutil.rmtree(staging_dir, ignore_errors=True)
             print(f"[*] Staging cleaned")
-
-        # ── Summary + save ───────────────────────────────────────────────────────
+    
+        # ── Flush alert buffer (runtime content injection alerts) ────────────────
+        runtime_alerts = get_alert_buffer().flush()
+    
+        if runtime_alerts:
+            print(f"[*] Menggabungkan {len(sast_findings)} SAST findings + "
+                f"{len(runtime_alerts)} runtime alerts")
+        
+        # Gabungkan semua findings
+        all_findings = sast_findings + runtime_alerts
+    
+        # ── Summary ──────────────────────────────────────────────────────────────
         by_severity: dict[str, int] = {}
-        for f in findings:
+        for f in all_findings:
             sev = f.get("severity", "unknown")
             by_severity[sev] = by_severity.get(sev, 0) + 1
-
+    
+        # Tentukan scan_types berdasarkan apa yang ada
+        scan_types = []
+        if sast_findings:
+            scan_types.append("sast")
+        if runtime_alerts:
+            scan_types.append("dast_runtime")
+    
         result = {
-            "findings":     findings,
-            "summary":      {"total": len(findings), "by_severity": by_severity},
-            "scanned_path": relative_path,
-            "event":        event,
-            "ts":           ts,
+            "findings":       all_findings,
+            "sast_count":     len(sast_findings),
+            "runtime_count":  len(runtime_alerts),
+            "summary":        {"total": len(all_findings), "by_severity": by_severity},
+            "scanned_path":   relative_path,
+            "event":          event,
+            "ts":             ts,
         }
-
+    
+        # ── Save findings.json ───────────────────────────────────────────────────
         findings_path = os.path.join(scan_dir, "findings.json")
         with open(findings_path, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, ensure_ascii=False)
-
-        print(f"[+] Findings saved: {findings_path} ({len(findings)} finding(s))")
-
-        # ── Auto report ──────────────────────────────────────────────────────────
-        if findings:
+    
+        print(f"[+] Findings saved: {findings_path}")
+        print(f"    SAST    : {len(sast_findings)} finding(s)")
+        print(f"    Runtime : {len(runtime_alerts)} alert(s)")
+        print(f"    Total   : {len(all_findings)} finding(s)")
+    
+        # ── Auto generate report ─────────────────────────────────────────────────
+        if all_findings:
+            print(f"[*] Generating report untuk {len(all_findings)} finding(s)...")
             try:
                 report_path = generate_report(
-                    findings   = findings,
+                    findings   = all_findings,
                     target     = self.target,
-                    scan_types = ["sast"],
+                    scan_types = scan_types,
                     output_dir = scan_dir,
                 )
                 if report_path:
                     print(f"[+] Report: {report_path}")
                     result["report_path"] = report_path
-                    notify_if_needed(findings, report_path, self.target)
+                    notify_if_needed(all_findings, report_path, self.target)
             except Exception as e:
                 print(f"[!] Report error: {e}")
         else:
             print(f"[*] Clean scan — tidak ada findings")
-
+    
         return result
-
     async def run_external_custom(self, urls_file=None, urls=None):
         print("[*] Running custom external scanner...")
 

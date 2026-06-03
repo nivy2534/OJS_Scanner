@@ -11,10 +11,11 @@ from __future__ import annotations
 import logging
 import os
 import requests
+from dotenv import load_dotenv
 from datetime import datetime
 
 log = logging.getLogger("notifier")
-
+load_dotenv()  # Load .env untuk API bot
 # Risk level yang trigger notifikasi
 NOTIFY_SEVERITIES = {"critical", "high", "medium"}
 

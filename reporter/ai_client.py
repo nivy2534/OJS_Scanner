@@ -14,12 +14,13 @@ import json
 import logging
 import os
 import time
+from dotenv import load_dotenv
 from typing import Optional
 
 import requests
 
 log = logging.getLogger("ai_client")
-
+load_dotenv()  # Load .env untuk API keys
 
 # ── Provider definitions ──────────────────────────────────────────────────────
 
@@ -42,6 +43,22 @@ PROVIDERS = [
         },
         "extract_text": lambda data: data["content"][0]["text"],
     },
+    {
+        "name": "groq",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "model": "openai/gpt-oss-safeguard-20b",
+        "auth_header": "Authorization",  
+        "auth_env": "GROQ_API_KEY",
+        "extra_headers": {"content-type": "application/json"},
+        "build_body": lambda prompt, system: {
+            "model": "openai/gpt-oss-safeguard-20b",
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": prompt},
+            ],
+        },
+        "extract_text": lambda data: data["choices"][0]["message"]["content"],
+    }
     # Tambah provider lain di sini nanti:
     # {
     #     "name": "openai",
@@ -129,13 +146,18 @@ class RevolverClient:
             raise RuntimeError(f"{provider['name']} error {resp.status_code}: {resp.text[:200]}")
 
         data = resp.json()
-        return provider["extract_text"](data)
+        text = provider["extract_text"](data)
+
+        print("=== AI TEXT ===")
+        print(text[:1000])
+        print("===============")
+
+        return text
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────
 
 _client: Optional[RevolverClient] = None
-
 
 def get_client() -> RevolverClient:
     global _client
