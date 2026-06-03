@@ -104,9 +104,30 @@ class AgentRequestHandler(http.server.BaseHTTPRequestHandler):
         if payload is None:
             self._send_json(400, {"error": "Invalid JSON"})
             return
-
-        print(f"[Agent] {payload.get('type', 'unknown')} — {payload.get('url', '')}")
+        
+        event_type = payload.get("type", "unknown")
+        url        = payload.get("url", "")
+        if event_type == "content_injection_alert":
+            threat_count = payload.get("threat_count", 0)
+            threats      = payload.get("threats", [])
+            print(f"\n[🚨 ALERT] Content injection terdeteksi!")
+            print(f"  URL     : {url}")
+            print(f"  Threats : {threat_count} finding(s)")
+            for t in threats:
+                print(f"  [{t.get('severity','?').upper()}] {t.get('description','')}")
+                print(f"  Match   : {t.get('match','')[:100]}")
+        elif event_type == "request":
+            print(f"[Agent] request — {payload.get('url', '')}")
+        elif event_type == "response_render":
+            print(f"[Agent] response_render — {url}")
+        elif event_type == "semgrep_findings":
+            count = len(payload.get("findings", []))
+            print(f"[Agent] semgrep_findings — {count} finding(s) dari {payload.get('path','')}")
+        else:
+            print(f"[Agent] {event_type} — {url}")
         self._send_json(200, {"status": "ok"})
+
+
 
 class HttpServer:
     """
