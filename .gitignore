@@ -2,3 +2,5 @@
 .env
 _pycache_
 .caps
+results/*
+results
