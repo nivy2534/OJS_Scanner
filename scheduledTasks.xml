@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE scheduled_tasks SYSTEM "../../../lib/pkp/dtd/scheduledTasks.dtd">
+<scheduled_tasks>
+    <task class="plugins.generic.securityAgent.tasks.FullScanTask">
+        <descr>Full security scan of OJS source code via Semgrep.</descr>
+        <frequency hour="2"/>
+    </task>
+</scheduled_tasks>
